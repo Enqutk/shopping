@@ -11,11 +11,13 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.8.0",
+    "@nestjs/schematics": "^11.0.0",
     "@next/eslint-plugin-next": "^16.1.6",
     "@nx/eslint": "22.7.2",
     "@nx/eslint-plugin": "22.7.2",
     "@nx/jest": "22.7.2",
     "@nx/js": "22.7.2",
+    "@nx/nest": "^22.7.2",
     "@nx/next": "22.7.2",
     "@nx/workspace": "22.7.2",
     "@swc-node/register": "~1.11.1",

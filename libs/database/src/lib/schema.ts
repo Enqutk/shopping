@@ -1,4 +1,4 @@
-import { pgTable, serial, text, varchar, timestamp, pgEnum, integer, boolean } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text, varchar, timestamp, pgEnum, integer, boolean, numeric } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 export const roleEnum = pgEnum('role', ['USER', 'ADMIN']);
@@ -20,6 +20,17 @@ export const refreshTokens = pgTable('refresh_tokens', {
   tokenHash: text('token_hash').notNull().unique(),
   expiresAt: timestamp('expires_at').notNull(),
   revoked: boolean('revoked').default(false).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const products = pgTable('products', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 256 }).notNull(),
+  description: text('description'),
+  price: numeric('price', { precision: 10, scale: 2 }).notNull(),
+  imageUrl: text('image_url'),
+  stock: integer('stock').default(0).notNull(),
+  category: varchar('category', { length: 100 }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
 import { AuthModule } from './auth/auth.module';
+import { ProductsModule } from './products/products.module';
 import { DatabaseModule } from '@shopping/database';
 
 @Module({
@@ -19,6 +20,7 @@ import { DatabaseModule } from '@shopping/database';
     }),
     DatabaseModule.forRoot(process.env.DATABASE_URL || 'postgres://postgres:postgres@localhost:5432/shopping'),
     AuthModule,
+    ProductsModule,
   ],
   controllers: [],
   providers: [],

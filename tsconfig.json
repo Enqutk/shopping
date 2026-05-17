@@ -5,6 +5,21 @@
   "references": [
     {
       "path": "./apps/frontend"
+    },
+    {
+      "path": "./apps/api-e2e"
+    },
+    {
+      "path": "./apps/api"
+    },
+    {
+      "path": "./libs/ui"
+    },
+    {
+      "path": "./libs/shared"
+    },
+    {
+      "path": "./libs/database"
     }
   ]
 }

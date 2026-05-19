@@ -3,12 +3,16 @@ import { UserProfile } from '@shopping/shared';
 
 interface AuthState {
   user: UserProfile | null;
+  loading: boolean;
   setUser: (user: UserProfile | null) => void;
+  setLoading: (loading: boolean) => void;
   logout: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
-  setUser: (user) => set({ user }),
-  logout: () => set({ user: null }),
+  loading: true,
+  setUser: (user) => set({ user, loading: false }),
+  setLoading: (loading) => set({ loading }),
+  logout: () => set({ user: null, loading: false }),
 }));

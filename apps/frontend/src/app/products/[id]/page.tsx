@@ -2,13 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Product } from '@shopping/shared';
+import StoreHeader from '../../../components/StoreHeader';
+import type { Product } from '@shopping/shared';
+import { useCartStore } from '../../../store/cart.store';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
 
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const addProduct = useCartStore((s) => s.addProduct);
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -31,27 +34,37 @@ export default function ProductDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <StoreHeader />
+        <div className="flex flex-1 items-center justify-center">
+          <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+        </div>
       </div>
     );
   }
 
   if (notFound || !product) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
-        <div className="text-6xl mb-4">😕</div>
-        <h2 className="text-xl font-bold text-gray-900">Product not found</h2>
-        <button onClick={() => router.push('/products')} className="mt-4 text-indigo-600 hover:underline text-sm">
-          ← Back to products
-        </button>
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <StoreHeader />
+        <div className="flex flex-1 flex-col items-center justify-center">
+          <div className="text-6xl mb-4">😕</div>
+          <h2 className="text-xl font-bold text-gray-900">Product not found</h2>
+          <button
+            onClick={() => router.push('/products')}
+            className="mt-4 text-indigo-600 hover:underline text-sm"
+          >
+            ← Back to products
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <StoreHeader />
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
         <button onClick={() => router.back()} className="text-sm text-gray-500 hover:text-indigo-600 mb-6 flex items-center gap-1">
           ← Back
         </button>
@@ -94,7 +107,9 @@ export default function ProductDetailPage() {
               </div>
 
               <button
+                type="button"
                 disabled={product.stock === 0}
+                onClick={() => addProduct(product, 1)}
                 className="w-full py-4 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}

@@ -1,5 +1,6 @@
 import './global.css';
 import AuthProvider from '../components/AuthProvider';
+import RealtimeProvider from '../components/RealtimeProvider';
 
 export const metadata = {
   title: 'Welcome to ',
@@ -15,7 +16,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <AuthProvider>
-          {children}
+          <RealtimeProvider>{children}</RealtimeProvider>
         </AuthProvider>
       </body>
     </html>

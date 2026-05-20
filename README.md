@@ -8,6 +8,50 @@
 
 [Learn more about this workspace setup and its capabilities](https://nx.dev/nx-api/next?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
 
+## Local development
+
+1. **PostgreSQL** — ensure a server is listening on port `5432` and create a database named `shopping` (or point `DATABASE_URL` at your own DB):
+
+   ```sh
+   # Example with Docker (adjust container name / user as needed)
+   docker exec <postgres-container> psql -U postgres -d postgres -c "CREATE DATABASE shopping;"
+   ```
+
+2. **Migrations** — from the repo root:
+
+   ```sh
+   DATABASE_URL="postgresql://postgres:postgres@localhost:5432/shopping" npx drizzle-kit migrate
+   ```
+
+3. **API** — in one terminal (replace secrets with real values for Google OAuth in non-local use):
+
+   ```sh
+   DATABASE_URL="postgresql://postgres:postgres@localhost:5432/shopping" \
+   JWT_SECRET="your-jwt-secret-at-least-32-chars" \
+   GOOGLE_CLIENT_ID="your-google-client-id" \
+   GOOGLE_CLIENT_SECRET="your-google-client-secret" \
+   FRONTEND_URL="http://localhost:4200" \
+   PORT=3000 \
+   npx nx serve api --configuration=development
+   ```
+
+   API base URL: `http://localhost:3000/api`
+
+   **Google Sign-In (`401: invalid_client` / “OAuth client was not found”)** — create an OAuth **Web client** in [Google Cloud Console](https://console.cloud.google.com/apis/credentials) → APIs & Services → Credentials → Create credentials → OAuth client ID. Set **Authorized redirect URI** to exactly:
+
+   `http://localhost:3000/api/auth/google/callback`
+
+   (If the API runs on another host/port, set `GOOGLE_CALLBACK_URL` in `.env` to the full callback URL and add that same URI in Google Cloud.) Put the **Client ID** and **Client secret** in `.env` as `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` — do not use placeholder values.
+
+4. **Frontend** — in another terminal (port `4200` avoids clashing with the API on `3000`):
+
+   ```sh
+   NEXT_PUBLIC_API_URL="http://localhost:3000/api" npx nx dev frontend -- --port 4200
+   ```
+
+   Optional: `NEXT_PUBLIC_REALTIME_URL=http://localhost:3000` if the Socket.IO server is not the same origin as `NEXT_PUBLIC_API_URL` without the `/api` suffix (otherwise the client strips `/api` automatically).
+
+   Open **http://localhost:4200**
 
 ## Run tasks
 

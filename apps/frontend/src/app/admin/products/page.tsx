@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import axios from 'axios';
-import { PaginatedProducts, Product } from '@shopping/shared';
+import { PaginatedProducts } from '@shopping/shared';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
 

@@ -1,11 +1,17 @@
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { IoAdapter } from '@nestjs/platform-socket.io';
 import { AppModule } from './app/app.module';
-import * as cookieParser from 'cookie-parser';
+import type { RequestHandler } from 'express';
+
+// CJS interop under webpack (`nx serve api`)
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const cookieParser = require('cookie-parser') as () => RequestHandler;
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  
+  app.useWebSocketAdapter(new IoAdapter(app));
+
   // CORS Configuration
   app.enableCors({
     origin: process.env.FRONTEND_URL || 'http://localhost:4200',

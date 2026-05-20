@@ -43,6 +43,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
           <nav className="space-y-2">
             <Link
+              href="/admin/orders"
+              className="flex items-center px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-all duration-200"
+            >
+              <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              Orders &amp; live
+            </Link>
+            <Link
               href="/admin/products"
               className="flex items-center px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-all duration-200"
             >

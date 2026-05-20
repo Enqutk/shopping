@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import ProductCard from '../../components/ProductCard';
+import StoreHeader from '../../components/StoreHeader';
 import { PaginatedProducts } from '@shopping/shared';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
@@ -40,8 +41,9 @@ export default function ProductsPage() {
   const totalPages = data ? Math.ceil(data.total / data.limit) : 0;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <StoreHeader />
+      {/* Filter bar */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">

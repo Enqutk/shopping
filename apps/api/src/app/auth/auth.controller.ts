@@ -3,12 +3,14 @@ import { AuthGuard } from '@nestjs/passport';
 import { Response, Request } from 'express';
 import { AuthService } from './auth.service';
 import { ConfigService } from '@nestjs/config';
+import { UsersService } from '../users/users.service';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private authService: AuthService,
     private configService: ConfigService,
+    private usersService: UsersService,
   ) {}
 
   @Get('google')
@@ -47,8 +49,18 @@ export class AuthController {
 
   @Get('me')
   @UseGuards(AuthGuard('jwt'))
-  getProfile(@Req() req: any) {
-    return req.user;
+  async getProfile(@Req() req: { user: { id: number; email: string; role: string } }) {
+    const row = await this.usersService.findById(req.user.id);
+    if (!row) {
+      return req.user;
+    }
+    return {
+      id: row.id,
+      name: row.name,
+      email: row.email,
+      avatar: row.avatar ?? undefined,
+      role: row.role,
+    };
   }
 
   @Delete('logout')

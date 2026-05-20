@@ -71,11 +71,11 @@ export default function EditProductPage() {
         `${API}/products/${id}`,
         {
           name,
-          description: description || null, // pass null to clear description
+          description: description.trim() || undefined,
           price: parsedPrice,
-          imageUrl: imageUrl || null,
+          imageUrl: imageUrl.trim() || undefined,
           stock: parsedStock,
-          category: category || null,
+          category: category.trim() || undefined,
         },
         { withCredentials: true }
       );

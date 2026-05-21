@@ -57,6 +57,12 @@
 
 5. **Environment template** — copy `.env.example` to `.env` and fill in secrets before deploying.
 
+6. **Demo products** (optional — populates every category if the catalog is empty):
+
+   ```sh
+   DATABASE_URL="postgresql://postgres:postgres@localhost:5432/shopping" npx tsx scripts/seed-products.ts
+   ```
+
 ## Docker (deployment-ready baseline)
 
 Start PostgreSQL, API, and frontend:

@@ -33,10 +33,10 @@ export default function UserDropdown() {
             {user.name.charAt(0)}
           </div>
         )}
-        <span className="text-sm font-medium">{user.name}</span>
+        <span className="text-sm font-medium text-white/80 hidden sm:inline">{user.name}</span>
         <button
           onClick={handleLogout}
-          className="ml-4 text-sm text-red-600 hover:text-red-800"
+          className="ml-2 text-[10px] uppercase tracking-wider text-white/50 hover:text-femme-champagne"
         >
           Logout
         </button>

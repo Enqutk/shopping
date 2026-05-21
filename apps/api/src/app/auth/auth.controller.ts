@@ -103,7 +103,6 @@ export class AuthController {
   async googleAuthRedirect(
     @Req() req: Request,
     @Res() res: Response,
-    @Next() next: NextFunction,
   ) {
     if (
       !isGoogleOAuthEnabled({

@@ -9,8 +9,17 @@ import type { RequestHandler } from 'express';
 const cookieParser = require('cookie-parser') as () => RequestHandler;
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: ['error', 'warn', 'log'],
+  });
   app.useWebSocketAdapter(new IoAdapter(app));
+
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const helmet = require('helmet') as () => RequestHandler;
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const compression = require('compression') as () => RequestHandler;
+  app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+  app.use(compression());
 
   // CORS Configuration
   app.enableCors({

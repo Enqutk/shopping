@@ -1,6 +1,7 @@
 import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import { DATABASE_CONNECTION, products } from '@shopping/database';
-import { eq, ilike, or, sql } from 'drizzle-orm';
+import { categoryFilterValues } from '@shopping/shared';
+import { eq, ilike, inArray, or, sql } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { CreateProductDto } from './create-product.dto';
 import { UpdateProductDto } from './update-product.dto';
@@ -36,7 +37,14 @@ export class ProductsService {
     }
 
     if (query.category) {
-      conditions.push(eq(products.category, query.category));
+      const values = categoryFilterValues(query.category);
+      if (values && values.length > 1) {
+        conditions.push(inArray(products.category, values));
+      } else if (values) {
+        conditions.push(eq(products.category, values[0]));
+      } else {
+        conditions.push(eq(products.category, query.category));
+      }
     }
 
     const where = conditions.length > 0

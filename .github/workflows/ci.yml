@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: shopping
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d shopping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/shopping
+      JWT_SECRET: ci-jwt-secret-minimum-32-characters-long
+      GOOGLE_CLIENT_ID: ci-google-client-id
+      GOOGLE_CLIENT_SECRET: ci-google-client-secret
+      FRONTEND_URL: http://localhost:4200
+      NEXT_PUBLIC_API_URL: http://localhost:3000/api
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Apply database migrations
+        run: npx drizzle-kit migrate
+
+      - name: Lint
+        run: npx nx run-many -t lint --projects=api,frontend --skip-nx-cache
+
+      - name: Build API
+        run: npx nx run api:build --configuration=production
+
+      - name: Build frontend
+        run: npx nx run frontend:build

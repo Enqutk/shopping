@@ -12,7 +12,7 @@ function statusBadge(status: OrderSummary['status']) {
   const map: Record<OrderSummary['status'], string> = {
     PENDING: 'bg-amber-50 text-amber-800 border-amber-200',
     PAID: 'bg-emerald-50 text-emerald-800 border-emerald-200',
-    SHIPPED: 'bg-sky-50 text-sky-800 border-sky-200',
+    SHIPPED: 'bg-arctic-mist text-arctic-deep border-arctic-steel/40',
     CANCELLED: 'bg-rose-50 text-rose-800 border-rose-200',
   };
   return map[status] ?? map.PENDING;

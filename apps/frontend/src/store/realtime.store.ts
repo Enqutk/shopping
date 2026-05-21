@@ -3,6 +3,7 @@
 import { io, type Socket } from 'socket.io-client';
 import { create } from 'zustand';
 import { useAuthStore } from './auth.store';
+import { useToastStore } from './toast.store';
 
 let socket: Socket | null = null;
 
@@ -14,31 +15,21 @@ function realtimeBaseUrl(): string {
   return stripped || 'http://localhost:3000';
 }
 
-export interface ToastItem {
-  id: string;
-  message: string;
-  ts: number;
-}
-
 interface RealtimeState {
   connected: boolean;
-  notifications: ToastItem[];
   orderStatusById: Record<number, string>;
   connect: () => void;
   disconnect: () => void;
-  dismiss: (id: string) => void;
 }
 
-function pushToast(set: (fn: (s: RealtimeState) => Partial<RealtimeState>) => void, message: string) {
-  const id = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-  set((s) => ({
-    notifications: [{ id, message, ts: Date.now() }, ...s.notifications].slice(0, 25),
-  }));
+function pushToast(message: string, variant: 'success' | 'info' = 'info') {
+  const store = useToastStore.getState();
+  if (variant === 'success') store.success(message);
+  else store.info(message);
 }
 
 export const useRealtimeStore = create<RealtimeState>((set) => ({
   connected: false,
-  notifications: [],
   orderStatusById: {},
 
   connect: () => {
@@ -59,7 +50,7 @@ export const useRealtimeStore = create<RealtimeState>((set) => ({
       (payload: { order?: { id: number }; userId?: number; scope?: string }) => {
         if (payload?.scope === 'self') {
           const oid = payload?.order?.id;
-          pushToast(set, oid != null ? `Order #${oid} confirmed` : 'Order placed');
+          pushToast(oid != null ? `Order #${oid} confirmed` : 'Order placed', 'success');
           return;
         }
         if (payload?.scope === 'admin') {
@@ -67,7 +58,7 @@ export const useRealtimeStore = create<RealtimeState>((set) => ({
           if (me != null && payload.userId === me) return;
         }
         const oid = payload?.order?.id;
-        pushToast(set, oid != null ? `New order #${oid}` : 'New order placed');
+        pushToast(oid != null ? `New order #${oid}` : 'New order placed');
       },
     );
 
@@ -75,11 +66,11 @@ export const useRealtimeStore = create<RealtimeState>((set) => ({
       set((s) => ({
         orderStatusById: { ...s.orderStatusById, [payload.orderId]: payload.status },
       }));
-      pushToast(set, `Order #${payload.orderId} → ${payload.status}`);
+      pushToast(`Order #${payload.orderId} → ${payload.status}`);
     });
 
     socket.on('admin:notification', (body: { message?: string }) => {
-      if (body?.message) pushToast(set, body.message);
+      if (body?.message) pushToast(body.message);
     });
   },
 
@@ -90,8 +81,4 @@ export const useRealtimeStore = create<RealtimeState>((set) => ({
     set({ connected: false });
   },
 
-  dismiss: (id) =>
-    set((s) => ({
-      notifications: s.notifications.filter((n) => n.id !== id),
-    })),
 }));

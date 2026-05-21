@@ -5,7 +5,9 @@ import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import axios from 'axios';
 import StoreHeader from '../../components/StoreHeader';
+import StoreFooter from '../../components/store/StoreFooter';
 import { useCartStore } from '../../store/cart.store';
+import { getErrorMessage, useToastStore } from '../../store/toast.store';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
 
@@ -14,6 +16,8 @@ export default function CheckoutPage() {
   const { items, clear } = useCartStore();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const toastError = useToastStore((s) => s.error);
+  const toastSuccess = useToastStore((s) => s.success);
 
   const subtotal = useMemo(
     () => items.reduce((sum, line) => sum + Number(line.price) * line.quantity, 0),
@@ -33,29 +37,28 @@ export default function CheckoutPage() {
         { withCredentials: true },
       );
       clear();
+      toastSuccess('Order placed successfully');
       router.push(`/orders/${data.id}`);
     } catch (err: unknown) {
-      const ax = err as { response?: { data?: { message?: string | string[] } } };
-      const msg = ax.response?.data?.message;
-      setError(
-        Array.isArray(msg) ? msg.join(', ') : msg || 'Checkout failed. Please try again.',
-      );
+      const msg = getErrorMessage(err, 'Checkout failed. Please try again.');
+      setError(msg);
+      toastError(msg);
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="store-page">
       <StoreHeader />
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1">
         <Link
           href="/cart"
-          className="text-sm text-gray-500 hover:text-indigo-600 mb-6 inline-block"
+          className="text-xs uppercase tracking-widest text-neutral-500 hover:text-luxe-ink mb-6 inline-block"
         >
           ← Back to cart
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Checkout</h1>
+        <h1 className="font-display text-3xl text-luxe-ink mb-2">Checkout</h1>
         <p className="text-sm text-gray-500 mb-8">
           Review your order and place it securely. Payment integration can be added in a later sprint.
         </p>
@@ -95,7 +98,7 @@ export default function CheckoutPage() {
               </div>
               <div className="px-5 py-4 bg-gray-50 flex justify-between items-center border-t border-gray-100">
                 <span className="font-semibold text-gray-900">Total</span>
-                <span className="text-xl font-bold text-indigo-600">${subtotal.toFixed(2)}</span>
+                <span className="text-xl font-bold text-luxe-ink">${subtotal.toFixed(2)}</span>
               </div>
             </div>
 
@@ -103,7 +106,7 @@ export default function CheckoutPage() {
               type="button"
               onClick={handlePlaceOrder}
               disabled={submitting}
-              className="mt-8 w-full py-4 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+              className="mt-8 w-full btn-primary py-4 disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {submitting && (
                 <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -113,6 +116,7 @@ export default function CheckoutPage() {
           </>
         )}
       </div>
+      <StoreFooter />
     </div>
   );
 }

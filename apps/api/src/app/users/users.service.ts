@@ -1,8 +1,14 @@
-import { Injectable, Inject } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  Inject,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { DATABASE_CONNECTION } from '@shopping/database';
 import { users } from '@shopping/database';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class UsersService {
@@ -12,7 +18,12 @@ export class UsersService {
   ) {}
 
   async findByEmail(email: string) {
-    const result = await this.db.select().from(users).where(eq(users.email, email)).limit(1);
+    const normalized = email.trim().toLowerCase();
+    const result = await this.db
+      .select()
+      .from(users)
+      .where(sql`lower(${users.email}) = ${normalized}`)
+      .limit(1);
     return result[0];
   }
 
@@ -32,6 +43,49 @@ export class UsersService {
         role: 'USER',
       }).returning();
       user = inserted[0];
+    }
+    return user;
+  }
+
+  async registerWithPassword(input: {
+    name: string;
+    email: string;
+    password: string;
+  }) {
+    const email = input.email.trim().toLowerCase();
+    const existing = await this.findByEmail(email);
+    if (existing) {
+      if (existing.provider === 'google') {
+        throw new ConflictException(
+          'This email is already linked to Google. Sign in with Google instead.',
+        );
+      }
+      throw new ConflictException('Email is already registered');
+    }
+
+    const passwordHash = await bcrypt.hash(input.password, 10);
+    const inserted = await this.db
+      .insert(users)
+      .values({
+        name: input.name.trim(),
+        email,
+        password: passwordHash,
+        provider: 'local',
+        role: 'USER',
+      })
+      .returning();
+    return inserted[0];
+  }
+
+  async validateLocalLogin(email: string, password: string) {
+    const normalized = email.trim().toLowerCase();
+    const user = await this.findByEmail(normalized);
+    if (!user?.password) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) {
+      throw new UnauthorizedException('Invalid email or password');
     }
     return user;
   }

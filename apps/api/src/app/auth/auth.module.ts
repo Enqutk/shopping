@@ -8,6 +8,18 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { UsersModule } from '../users/users.module';
 
+function googleOAuthEnabled(): boolean {
+  const id = process.env.GOOGLE_CLIENT_ID?.trim();
+  const secret = process.env.GOOGLE_CLIENT_SECRET?.trim();
+  return Boolean(id && secret);
+}
+
+const authProviders = [
+  AuthService,
+  JwtStrategy,
+  ...(googleOAuthEnabled() ? [GoogleStrategy] : []),
+];
+
 @Module({
   imports: [
     UsersModule,
@@ -22,7 +34,7 @@ import { UsersModule } from '../users/users.module';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, GoogleStrategy],
+  providers: authProviders,
   exports: [JwtModule, AuthService],
 })
 export class AuthModule {}

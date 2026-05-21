@@ -4,20 +4,17 @@ import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './jwt.strategy';
 import { GoogleStrategy } from './google.strategy';
+import { GoogleOAuthConfiguredGuard } from './google-auth.guard';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { UsersModule } from '../users/users.module';
-
-function googleOAuthEnabled(): boolean {
-  const id = process.env.GOOGLE_CLIENT_ID?.trim();
-  const secret = process.env.GOOGLE_CLIENT_SECRET?.trim();
-  return Boolean(id && secret);
-}
+import { isGoogleOAuthEnabled } from './google-oauth.util';
 
 const authProviders = [
   AuthService,
   JwtStrategy,
-  ...(googleOAuthEnabled() ? [GoogleStrategy] : []),
+  GoogleOAuthConfiguredGuard,
+  ...(isGoogleOAuthEnabled() ? [GoogleStrategy] : []),
 ];
 
 @Module({

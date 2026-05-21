@@ -15,6 +15,11 @@ import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../users/users.service';
 import { RegisterDto } from './register.dto';
 import { LoginDto } from './login.dto';
+import { GoogleOAuthConfiguredGuard } from './google-auth.guard';
+import { isGoogleOAuthEnabled } from './google-oauth.util';
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const passport = require('passport') as typeof import('passport');
 
 @Controller('auth')
 export class AuthController {
@@ -80,18 +85,51 @@ export class AuthController {
   }
 
   @Get('google')
-  @UseGuards(AuthGuard('google'))
-  async googleAuth(@Req() req: Request) {
-    // Initiates Google OAuth
+  @UseGuards(GoogleOAuthConfiguredGuard)
+  googleAuth(@Req() req: Request, @Res() res: Response) {
+    if (
+      !isGoogleOAuthEnabled({
+        clientId: this.configService.get<string>('GOOGLE_CLIENT_ID'),
+        clientSecret: this.configService.get<string>('GOOGLE_CLIENT_SECRET'),
+      })
+    ) {
+      return;
+    }
+    return passport.authenticate('google', { scope: ['email', 'profile'] })(req, res);
   }
 
   @Get('google/callback')
-  @UseGuards(AuthGuard('google'))
-  async googleAuthRedirect(@Req() req: any, @Res() res: Response) {
-    await this.attachSession(res, req.user);
+  @UseGuards(GoogleOAuthConfiguredGuard)
+  async googleAuthRedirect(
+    @Req() req: Request,
+    @Res() res: Response,
+    @Next() next: NextFunction,
+  ) {
+    if (
+      !isGoogleOAuthEnabled({
+        clientId: this.configService.get<string>('GOOGLE_CLIENT_ID'),
+        clientSecret: this.configService.get<string>('GOOGLE_CLIENT_SECRET'),
+      })
+    ) {
+      return;
+    }
 
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL');
-    return res.redirect(`${frontendUrl}/login/success`);
+    return passport.authenticate('google', {
+      session: false,
+      failureRedirect: `${this.configService.get<string>('FRONTEND_URL') ?? 'http://localhost:4200'}/login?error=google_auth_failed`,
+    })(req, res, async (err: Error | null, user: Express.User | false) => {
+      if (err || !user) {
+        const frontend =
+          this.configService.get<string>('FRONTEND_URL') ?? 'http://localhost:4200';
+        return res.redirect(
+          `${frontend}/login?error=${encodeURIComponent('Google sign-in failed')}`,
+        );
+      }
+
+      await this.attachSession(res, user as { id: number; email: string; role: string });
+      const frontendUrl = this.configService.get<string>('FRONTEND_URL');
+      return res.redirect(`${frontendUrl}/login/success`);
+    });
   }
 
   @Get('me')

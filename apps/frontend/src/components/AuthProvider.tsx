@@ -15,8 +15,9 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
           { withCredentials: true }
         );
         setUser(res.data);
-      } catch (err) {
+      } catch {
         setUser(null);
+      } finally {
         setLoading(false);
       }
     };

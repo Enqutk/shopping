@@ -53,6 +53,34 @@
 
    Open **http://localhost:4200**
 
+   **Admin dashboard** (requires a user with `ADMIN` role): **http://localhost:4200/admin** — analytics, recent orders, product and order management.
+
+5. **Environment template** — copy `.env.example` to `.env` and fill in secrets before deploying.
+
+## Docker (deployment-ready baseline)
+
+Start PostgreSQL, API, and frontend:
+
+```sh
+cp .env.example .env
+# Edit .env with real JWT_SECRET and Google OAuth credentials
+
+docker compose up --build
+```
+
+- API: http://localhost:3000/api  
+- Frontend: http://localhost:4200  
+
+Run migrations against the compose Postgres (from host):
+
+```sh
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/shopping" npx drizzle-kit migrate
+```
+
+## CI
+
+GitHub Actions (`.github/workflows/ci.yml`) runs lint, migrations, and production builds for `api` and `frontend` on push/PR to `main` or `master`.
+
 ## Run tasks
 
 To run the dev server for your app, use:

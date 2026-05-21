@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { FormEvent, useMemo, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import { useAuthStore } from '../../store/auth.store';
 import { apiBaseUrl } from '../../lib/api-client';
@@ -25,6 +25,7 @@ function passwordChecks(password: string) {
 
 export default function AuthForm({ mode }: AuthFormProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const setUser = useAuthStore((s) => s.setUser);
   const isRegister = mode === 'register';
 
@@ -34,6 +35,11 @@ export default function AuthForm({ mode }: AuthFormProps) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const urlError = searchParams.get('error');
+    if (urlError) setError(urlError);
+  }, [searchParams]);
 
   const checks = useMemo(() => passwordChecks(password), [password]);
   const strengthScore = Object.values(checks).filter(Boolean).length;

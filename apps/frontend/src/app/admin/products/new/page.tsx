@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import axios from 'axios';
+import CategorySelect from '../../../../components/admin/CategorySelect';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
 
@@ -135,17 +136,11 @@ export default function NewProductPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-semibold text-slate-200 mb-2">Category</label>
-            <select
+            <CategorySelect
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
+              onChange={setCategory}
               className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl px-4 py-3 text-sm text-slate-300 outline-none transition-colors"
-            >
-              <option value="">Select a category</option>
-              <option value="footwear">Footwear</option>
-              <option value="clothing">Clothing</option>
-              <option value="accessories">Accessories</option>
-              <option value="electronics">Electronics</option>
-            </select>
+            />
           </div>
 
           <div>

@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { useMemo } from 'react';
 import StoreHeader from '../../components/StoreHeader';
+import StoreFooter from '../../components/store/StoreFooter';
+import StoreScene from '../../components/immersive/StoreScene';
 import { useCartStore } from '../../store/cart.store';
 
 export default function CartPage() {
@@ -14,13 +16,14 @@ export default function CartPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="store-page">
+      <StoreScene>
       <StoreHeader />
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1">
+      <main id="main-content" className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Your cart</h1>
-            <p className="text-sm text-gray-500 mt-1">
+            <h1 className="section-heading">Your cart</h1>
+            <p className="text-sm text-arctic-deep/60 mt-1 normal-case tracking-normal font-normal">
               {items.length === 0
                 ? 'No items yet'
                 : `${items.reduce((n, i) => n + i.quantity, 0)} items in cart`}
@@ -28,19 +31,18 @@ export default function CartPage() {
           </div>
           <Link
             href="/products"
-            className="text-sm font-medium text-indigo-600 hover:text-indigo-700"
+            className="text-sm font-medium uppercase tracking-wider text-arctic-deep/70 hover:text-luxe-accent"
           >
             ← Continue shopping
           </Link>
         </div>
 
         {items.length === 0 ? (
-          <div className="rounded-2xl border border-gray-200 bg-white p-12 text-center shadow-sm">
-            <div className="text-5xl mb-4">🛒</div>
-            <p className="text-gray-600 font-medium">Your cart is empty</p>
+          <div className="arctic-card p-12 text-center">
+            <p className="text-arctic-deep/80 font-medium uppercase tracking-widest">Your cart is empty</p>
             <Link
               href="/products"
-              className="inline-block mt-6 px-6 py-3 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700"
+              className="inline-block mt-6 btn-primary"
             >
               Browse products
             </Link>
@@ -51,7 +53,7 @@ export default function CartPage() {
               {items.map((line) => (
                 <li
                   key={line.productId}
-                  className="flex gap-4 p-4 rounded-2xl bg-white border border-gray-100 shadow-sm"
+                  className="flex gap-4 p-4 rounded-lg bg-femme-surface border border-white/10"
                 >
                   <Link
                     href={`/products/${line.productId}`}
@@ -122,7 +124,7 @@ export default function CartPage() {
               ))}
             </ul>
 
-            <aside className="lg:col-span-1 rounded-2xl bg-white border border-gray-200 p-6 shadow-sm sticky top-24">
+            <aside className="lg:col-span-1 rounded-lg bg-femme-surface border border-white/10 p-6 sticky top-24">
               <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
                 Summary
               </h2>
@@ -133,14 +135,16 @@ export default function CartPage() {
               <p className="text-xs text-gray-400 mt-2">Taxes and shipping calculated at checkout.</p>
               <Link
                 href="/checkout"
-                className="mt-6 block w-full text-center py-3.5 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition-colors"
+                className="mt-6 block w-full text-center btn-primary"
               >
                 Checkout
               </Link>
             </aside>
           </div>
         )}
-      </div>
+      </main>
+      <StoreFooter />
+      </StoreScene>
     </div>
   );
 }

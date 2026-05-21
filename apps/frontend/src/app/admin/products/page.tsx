@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import axios from 'axios';
 import { PaginatedProducts } from '@shopping/shared';
+import CategorySelect from '../../../components/admin/CategorySelect';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
 
@@ -91,17 +92,12 @@ export default function AdminProductsPage() {
               className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 outline-none transition-colors"
             />
           </div>
-          <select
+          <CategorySelect
             value={category}
-            onChange={(e) => { setCategory(e.target.value); setPage(1); }}
+            onChange={(v) => { setCategory(v); setPage(1); }}
+            emptyLabel="All Categories"
             className="bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl px-4 py-2.5 text-sm text-slate-300 outline-none transition-colors"
-          >
-            <option value="">All Categories</option>
-            <option value="footwear">Footwear</option>
-            <option value="clothing">Clothing</option>
-            <option value="accessories">Accessories</option>
-            <option value="electronics">Electronics</option>
-          </select>
+          />
         </div>
 
         {data && (

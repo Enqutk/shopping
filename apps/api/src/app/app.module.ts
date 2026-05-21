@@ -18,8 +18,8 @@ import { DatabaseModule } from '@shopping/database';
       validationSchema: Joi.object({
         DATABASE_URL: Joi.string().required(),
         JWT_SECRET: Joi.string().required(),
-        GOOGLE_CLIENT_ID: Joi.string().required(),
-        GOOGLE_CLIENT_SECRET: Joi.string().required(),
+        GOOGLE_CLIENT_ID: Joi.string().allow('').optional(),
+        GOOGLE_CLIENT_SECRET: Joi.string().allow('').optional(),
         /** Must match an "Authorized redirect URI" in Google Cloud (defaults to local API). */
         GOOGLE_CALLBACK_URL: Joi.string().optional(),
         FRONTEND_URL: Joi.string().required(),

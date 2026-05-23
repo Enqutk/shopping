@@ -16,7 +16,17 @@
     }
   },
   "nx": {
-    "name": "shared"
+    "name": "shared",
+    "targets": {
+      "build": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "tsc -p tsconfig.lib.json",
+          "cwd": "libs/shared"
+        },
+        "outputs": ["{projectRoot}/dist"]
+      }
+    }
   },
   "dependencies": {
     "tslib": "^2.3.0"

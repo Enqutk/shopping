@@ -16,6 +16,13 @@ function realtimeBaseUrl(): string {
   return stripped || 'http://localhost:3000';
 }
 
+type AdminActivityPayload = {
+  type: string;
+  message: string;
+  href?: string;
+  at?: string;
+};
+
 interface RealtimeState {
   connected: boolean;
   orderStatusById: Record<number, string>;
@@ -31,6 +38,12 @@ function pushToast(
   const store = useToastStore.getState();
   if (variant === 'success') store.success(message, href);
   else store.info(message, href);
+}
+
+function notifyAdminActivity(body: AdminActivityPayload) {
+  const user = useAuthStore.getState().user;
+  if (user?.role !== 'ADMIN' || !body.message) return;
+  pushToast(body.message, 'info', body.href);
 }
 
 export const useRealtimeStore = create<RealtimeState>((set) => ({
@@ -52,49 +65,35 @@ export const useRealtimeStore = create<RealtimeState>((set) => ({
 
     socket.on(
       'order:created',
-      (payload: { order?: { id: number }; userId?: number; scope?: string }) => {
+      (payload: { order?: { id: number }; scope?: string }) => {
+        if (payload?.scope !== 'self') return;
         const oid = payload?.order?.id;
-        const orderHref = oid != null ? `/orders/${oid}` : '/orders';
-
-        if (payload?.scope === 'self') {
-          pushToast(
-            oid != null ? `Order #${oid} placed successfully` : 'Order placed',
-            'success',
-            orderHref,
-          );
-          return;
-        }
-
-        if (payload?.scope === 'admin') {
-          const me = useAuthStore.getState().user?.id;
-          if (me != null && payload.userId === me) return;
-          pushToast(
-            oid != null ? `New order #${oid}` : 'New order placed',
-            'info',
-            '/admin/orders',
-          );
-        }
+        pushToast(
+          oid != null ? `Order #${oid} placed successfully` : 'Order placed',
+          'success',
+          oid != null ? `/orders/${oid}` : '/orders',
+        );
       },
     );
 
     socket.on('order:status', (payload: { orderId: number; status: string }) => {
+      const user = useAuthStore.getState().user;
+      if (user?.role === 'ADMIN') return;
+
       set((s) => ({
         orderStatusById: { ...s.orderStatusById, [payload.orderId]: payload.status },
       }));
-
-      const user = useAuthStore.getState().user;
       const message = orderStatusNotificationMessage(payload.orderId, payload.status);
+      pushToast(message, 'success', `/orders/${payload.orderId}`);
+    });
 
-      if (user?.role === 'ADMIN') {
-        pushToast(message, 'info', '/admin/orders');
-      } else {
-        pushToast(message, 'success', `/orders/${payload.orderId}`);
-      }
+    socket.on('admin:activity', (body: AdminActivityPayload) => {
+      notifyAdminActivity(body);
     });
 
     socket.on('admin:notification', (body: { message?: string; href?: string }) => {
       if (body?.message) {
-        pushToast(body.message, 'info', body.href);
+        notifyAdminActivity({ type: 'broadcast', message: body.message, href: body.href });
       }
     });
   },

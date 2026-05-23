@@ -2,6 +2,15 @@
   "name": "@shopping/frontend",
   "version": "0.0.1",
   "private": true,
+  "nx": {
+    "targets": {
+      "dev": {
+        "options": {
+          "command": "next dev --port 4200"
+        }
+      }
+    }
+  },
   "dependencies": {
     "next": "~16.1.6",
     "react": "^19.0.0",

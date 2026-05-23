@@ -19,10 +19,22 @@ const nextConfig = {
     ],
   },
   async rewrites() {
+    // Nest API (must not be the same port as this Next dev server — use 4200 for frontend)
+    const apiOrigin = (
+      process.env.API_PROXY_URL || 'http://localhost:3000'
+    ).replace(/\/$/, '');
+    const devPort = process.env.PORT || '3000';
+    if (process.env.NODE_ENV !== 'production' && devPort === '3000') {
+      console.warn(
+        `[next] WARNING: frontend dev server is on port ${devPort} but /api proxies to ${apiOrigin}. ` +
+          'Start the API on :3000 and the frontend on :4200 (see apps/frontend/.env.development).',
+      );
+    }
+    console.log(`[next] /api/* → ${apiOrigin}/api/* (dev PORT=${devPort})`);
     return [
       {
         source: '/api/:path*',
-        destination: 'http://localhost:3000/api/:path*',
+        destination: `${apiOrigin}/api/:path*`,
       },
     ];
   },

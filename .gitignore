@@ -49,6 +49,9 @@ out
 
 test-output
 
+# Git history rewrite temp (do not commit)
+.git-rewrite/
+
 # Secrets & local env (never commit)
 .env
 .env.*

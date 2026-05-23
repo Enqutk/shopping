@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import type { AdminStats } from '@shopping/shared';
+import { getOrderStatusLabel, ORDER_STATUS_OPTIONS } from '@shopping/shared';
 import StatCard from '../../components/admin/StatCard';
 import RevenueChart from '../../components/admin/RevenueChart';
 
@@ -93,13 +94,15 @@ export default function AdminDashboardPage() {
             Orders by status
           </h2>
           <ul className="space-y-3">
-            {(['PENDING', 'PAID', 'SHIPPED', 'CANCELLED'] as const).map((s) => (
-              <li key={s} className="flex justify-between items-center text-sm">
-                <span className={`px-2 py-0.5 rounded-full border text-xs font-semibold ${statusColor(s)}`}>
-                  {s}
+            {ORDER_STATUS_OPTIONS.map((opt) => (
+              <li key={opt.value} className="flex justify-between items-center text-sm">
+                <span
+                  className={`px-2 py-0.5 rounded-full border text-xs font-semibold ${statusColor(opt.value)}`}
+                >
+                  {opt.label}
                 </span>
                 <span className="text-white font-bold tabular-nums">
-                  {stats.ordersByStatus[s] ?? 0}
+                  {stats.ordersByStatus[opt.value] ?? 0}
                 </span>
               </li>
             ))}
@@ -147,7 +150,7 @@ export default function AdminDashboardPage() {
                     </td>
                     <td className="px-6 py-3">
                       <span className={`text-xs font-semibold px-2 py-1 rounded-full border ${statusColor(o.status)}`}>
-                        {o.status}
+                        {getOrderStatusLabel(o.status)}
                       </span>
                     </td>
                   </tr>

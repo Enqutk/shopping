@@ -7,6 +7,26 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
+export type AdminActivityType =
+  | 'order.placed'
+  | 'account.registered'
+  | 'account.google'
+  | 'order.status_updated';
+
+export interface AdminActivityPayload {
+  type: AdminActivityType;
+  message: string;
+  href?: string;
+  at: string;
+  meta?: {
+    orderId?: number;
+    userId?: number;
+    userName?: string;
+    userEmail?: string;
+    status?: string;
+  };
+}
+
 function getCookie(header: string | undefined, name: string): string | undefined {
   if (!header) return undefined;
   for (const part of header.split(';')) {
@@ -62,14 +82,22 @@ export class RealtimeGateway implements OnGatewayConnection {
     }
   }
 
+  emitAdminActivity(
+    payload: Omit<AdminActivityPayload, 'at'> & { at?: string },
+  ) {
+    const body: AdminActivityPayload = {
+      ...payload,
+      at: payload.at ?? new Date().toISOString(),
+    };
+    this.server.to('admin').emit('admin:activity', body);
+  }
+
   emitOrderCreated(userId: number, order: unknown) {
     this.server.to(`user:${userId}`).emit('order:created', { order, scope: 'self' });
-    this.server.to('admin').emit('order:created', { order, userId, scope: 'admin' });
   }
 
   emitOrderStatus(userId: number, payload: { orderId: number; status: string }) {
     this.server.to(`user:${userId}`).emit('order:status', payload);
-    this.server.to('admin').emit('order:status', payload);
   }
 
   emitAdminNotification(message: string, audience: 'admin' | 'all') {

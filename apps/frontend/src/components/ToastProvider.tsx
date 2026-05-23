@@ -1,6 +1,7 @@
 'use client';
 
-import { useToastStore, type ToastVariant } from '../store/toast.store';
+import { useRouter } from 'next/navigation';
+import { useToastStore, type ToastItem, type ToastVariant } from '../store/toast.store';
 
 const styles: Record<ToastVariant, string> = {
   default: 'border-neutral-200 bg-white text-luxe-ink',
@@ -10,8 +11,15 @@ const styles: Record<ToastVariant, string> = {
 };
 
 export default function ToastProvider() {
+  const router = useRouter();
   const items = useToastStore((s) => s.items);
   const dismiss = useToastStore((s) => s.dismiss);
+
+  const goTo = (toast: ToastItem) => {
+    if (!toast.href) return;
+    dismiss(toast.id);
+    router.push(toast.href);
+  };
 
   if (items.length === 0) return null;
 
@@ -27,7 +35,19 @@ export default function ToastProvider() {
           key={t.id}
           className={`pointer-events-auto rounded-2xl border shadow-luxe-lg px-5 py-4 text-sm flex justify-between gap-3 items-start animate-fade-up ${styles[t.variant]}`}
         >
-          <p className="leading-snug font-medium">{t.message}</p>
+          <button
+            type="button"
+            onClick={() => goTo(t)}
+            disabled={!t.href}
+            className={`flex-1 min-w-0 text-left ${
+              t.href ? 'cursor-pointer hover:opacity-90' : 'cursor-default'
+            }`}
+          >
+            <p className="leading-snug font-medium">{t.message}</p>
+            {t.href && (
+              <p className="text-xs opacity-70 mt-1 font-normal">Tap to view →</p>
+            )}
+          </button>
           <button
             type="button"
             onClick={() => dismiss(t.id)}

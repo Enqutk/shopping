@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import StoreHeader from '../../../components/StoreHeader';
 import type { OrderDetail } from '@shopping/shared';
+import { getOrderStatusLabel } from '@shopping/shared';
 import { useRealtimeStore } from '../../../store/realtime.store';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
@@ -77,7 +78,7 @@ export default function OrderDetailPage() {
                 <p className="text-sm text-gray-600 mt-2">
                   Status:{' '}
                   <span className="font-semibold">
-                    {liveStatus ?? order.status}
+                    {getOrderStatusLabel(liveStatus ?? order.status)}
                   </span>
                   {liveStatus && liveStatus !== order.status && (
                     <span className="ml-2 text-xs text-emerald-600 font-medium">(live)</span>

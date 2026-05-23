@@ -40,8 +40,22 @@ async function bootstrap() {
 
   const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix);
-  const port = process.env.PORT || 3000;
-  await app.listen(port);
+  const port = Number(process.env.PORT) || 3000;
+  try {
+    await app.listen(port);
+  } catch (err: unknown) {
+    const code =
+      err && typeof err === 'object' && 'code' in err
+        ? (err as { code?: string }).code
+        : undefined;
+    if (code === 'EADDRINUSE') {
+      Logger.error(
+        `Port ${port} is already in use. Stop the Next.js dev server on :3000 ` +
+          `and run the frontend on :4200 (npx nx dev frontend), then restart the API.`,
+      );
+    }
+    throw err;
+  }
   Logger.log(
     `🚀 Application is running on: http://localhost:${port}/${globalPrefix}`,
   );

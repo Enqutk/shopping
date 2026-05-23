@@ -8,13 +8,11 @@ import { GoogleOAuthConfiguredGuard } from './google-auth.guard';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { UsersModule } from '../users/users.module';
-import { isGoogleOAuthEnabled } from './google-oauth.util';
-
 const authProviders = [
   AuthService,
   JwtStrategy,
   GoogleOAuthConfiguredGuard,
-  ...(isGoogleOAuthEnabled() ? [GoogleStrategy] : []),
+  GoogleStrategy,
 ];
 
 @Module({

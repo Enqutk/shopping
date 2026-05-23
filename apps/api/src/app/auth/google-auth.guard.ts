@@ -2,6 +2,7 @@ import {
   CanActivate,
   ExecutionContext,
   Injectable,
+  Logger,
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -11,19 +12,32 @@ import { isGoogleOAuthEnabled } from './google-oauth.util';
 /** Blocks Google routes when OAuth env vars are missing (strategy not registered). */
 @Injectable()
 export class GoogleOAuthConfiguredGuard implements CanActivate {
+  private readonly logger = new Logger(GoogleOAuthConfiguredGuard.name);
+
   constructor(private readonly config: ConfigService) {}
 
   canActivate(context: ExecutionContext): boolean {
+    const req = context.switchToHttp().getRequest<{
+      method?: string;
+      url?: string;
+      headers: { accept?: string };
+    }>();
     if (
       isGoogleOAuthEnabled({
         clientId: this.config.get<string>('GOOGLE_CLIENT_ID'),
         clientSecret: this.config.get<string>('GOOGLE_CLIENT_SECRET'),
       })
     ) {
+      this.logger.log(
+        `Google OAuth allowed: ${req.method ?? 'GET'} ${req.url ?? '/auth/google'}`,
+      );
       return true;
     }
 
-    const req = context.switchToHttp().getRequest<{ headers: { accept?: string } }>();
+    this.logger.warn(
+      `Google OAuth blocked (missing credentials): ${req.method ?? 'GET'} ${req.url ?? ''}`,
+    );
+
     const wantsHtml = (req.headers.accept ?? '').includes('text/html');
     const frontend =
       this.config.get<string>('FRONTEND_URL') ?? 'http://localhost:4200';

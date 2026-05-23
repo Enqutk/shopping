@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { PRODUCT_CATEGORIES } from '@shopping/shared';
 import { useCartStore } from '../store/cart.store';
+import { useAuthStore } from '../store/auth.store';
 import UserDropdown from './UserDropdown';
 
 const LEFT_NAV = [
@@ -24,6 +25,8 @@ function SearchIcon() {
 export default function StoreHeader({ transparent = false }: { transparent?: boolean }) {
   const items = useCartStore((s) => s.items);
   const cartCount = items.reduce((n, i) => n + i.quantity, 0);
+  const user = useAuthStore((s) => s.user);
+  const authLoading = useAuthStore((s) => s.loading);
   const pathname = usePathname();
   const onHome = pathname === '/';
 
@@ -105,15 +108,19 @@ export default function StoreHeader({ transparent = false }: { transparent?: boo
               </span>
             )}
           </Link>
-          <Link href="/login" className="femme-nav-link hidden sm:inline">
-            Sign in
-          </Link>
-          <Link
-            href="/register"
-            className="hidden sm:inline text-[10px] font-bold uppercase tracking-[0.15em] text-femme-champagne hover:text-femme-champagne-light transition-colors"
-          >
-            Register
-          </Link>
+          {!authLoading && !user && (
+            <>
+              <Link href="/login" className="femme-nav-link hidden sm:inline">
+                Sign in
+              </Link>
+              <Link
+                href="/register"
+                className="hidden sm:inline text-[10px] font-bold uppercase tracking-[0.15em] text-femme-champagne hover:text-femme-champagne-light transition-colors"
+              >
+                Register
+              </Link>
+            </>
+          )}
           <UserDropdown />
         </div>
       </div>

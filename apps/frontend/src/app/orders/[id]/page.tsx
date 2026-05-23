@@ -2,14 +2,16 @@
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import axios from 'axios';
+import { useEffect, useMemo, useState } from 'react';
 import StoreHeader from '../../../components/StoreHeader';
-import type { OrderDetail } from '@shopping/shared';
-import { getOrderStatusLabel } from '@shopping/shared';
+import StoreFooter from '../../../components/store/StoreFooter';
+import StoreScene from '../../../components/immersive/StoreScene';
+import OrderTimeline from '../../../components/orders/OrderTimeline';
+import type { OrderDetail, OrderStatus } from '@shopping/shared';
+import { buildOrderTimeline, getOrderStatusLabel } from '@shopping/shared';
+import { ORDER_STATUS_BADGE } from '../../../lib/order-status-ui';
 import { useRealtimeStore } from '../../../store/realtime.store';
-
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
+import { apiFetch } from '../../../lib/api-client';
 
 export default function OrderDetailPage() {
   const params = useParams<{ id: string }>();
@@ -26,119 +28,136 @@ export default function OrderDetailPage() {
     let cancelled = false;
     const load = async () => {
       try {
-        const res = await axios.get<OrderDetail>(`${API}/orders/${id}`, {
-          withCredentials: true,
-        });
-        if (!cancelled) setOrder(res.data);
+        const res = await apiFetch(`/orders/${id}`);
+        if (res.status === 404) {
+          if (!cancelled) setNotFound(true);
+          return;
+        }
+        if (!res.ok) throw new Error('Failed to load');
+        if (!cancelled) setOrder(await res.json());
       } catch {
         if (!cancelled) setNotFound(true);
       } finally {
         if (!cancelled) setLoading(false);
       }
     };
-    load();
+    void load();
     return () => {
       cancelled = true;
     };
-  }, [id]);
+  }, [id, liveStatus]);
+
+  const displayStatus = liveStatus ?? order?.status;
+  const statusKey = (displayStatus ?? 'PENDING') as keyof typeof ORDER_STATUS_BADGE;
+  const badge = ORDER_STATUS_BADGE[statusKey] ?? ORDER_STATUS_BADGE.PENDING;
+
+  const { steps: timelineSteps, log: timelineLog } = useMemo(() => {
+    if (!order) return { steps: [], log: [] };
+    const status = (displayStatus ?? order.status) as OrderStatus;
+    if (order.timeline?.length && !liveStatus) {
+      return { steps: order.timeline, log: order.statusLog ?? [] };
+    }
+    return buildOrderTimeline(status, order.statusLog ?? [], order.createdAt);
+  }, [order, displayStatus, liveStatus]);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <StoreHeader />
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1">
-        <Link href="/orders" className="text-sm text-gray-500 hover:text-indigo-600 mb-6 inline-block">
-          ← All orders
-        </Link>
+    <div className="store-page">
+      <StoreScene>
+        <StoreHeader />
+        <main
+          id="main-content"
+          className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1"
+        >
+          <Link
+            href="/orders"
+            className="text-[10px] uppercase tracking-wider text-arctic-light hover:text-femme-champagne mb-6 inline-block"
+          >
+            ← Orders
+          </Link>
 
-        {loading ? (
-          <div className="flex justify-center py-24">
-            <div className="w-9 h-9 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-          </div>
-        ) : notFound || !order ? (
-          <div className="rounded-2xl border border-gray-200 bg-white p-12 text-center">
-            <p className="text-gray-900 font-semibold">Order not found</p>
-            <Link href="/orders" className="text-indigo-600 text-sm mt-4 inline-block hover:underline">
-              Back to order history
-            </Link>
-          </div>
-        ) : (
-          <>
-            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Order #{order.id}</h1>
-                <p className="text-sm text-gray-500 mt-1">
-                  {new Date(order.createdAt).toLocaleString()}
-                </p>
-              </div>
-              <div className="text-left sm:text-right">
-                <p className="text-xs font-semibold text-gray-500 uppercase">Total</p>
-                <p className="text-2xl font-bold text-indigo-600">
-                  ${Number(order.totalPrice).toFixed(2)}
-                </p>
-                <p className="text-sm text-gray-600 mt-2">
-                  Status:{' '}
-                  <span className="font-semibold">
-                    {getOrderStatusLabel(liveStatus ?? order.status)}
-                  </span>
-                  {liveStatus && liveStatus !== order.status && (
-                    <span className="ml-2 text-xs text-emerald-600 font-medium">(live)</span>
-                  )}
-                </p>
-              </div>
+          {loading ? (
+            <div className="flex justify-center py-24">
+              <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
             </div>
+          ) : notFound || !order ? (
+            <div className="arctic-card p-10 text-center">
+              <p className="text-arctic-deep font-medium uppercase tracking-widest text-sm">
+                Order not found
+              </p>
+              <Link href="/orders" className="text-femme-champagne text-sm mt-4 inline-block hover:underline">
+                Back to orders
+              </Link>
+            </div>
+          ) : (
+            <div className="grid lg:grid-cols-[1fr_280px] gap-8 lg:gap-10 items-start">
+              <div className="space-y-6 min-w-0">
+                <header className="flex flex-wrap items-start justify-between gap-4">
+                  <div>
+                    <h1 className="section-heading text-2xl">Order #{order.id}</h1>
+                    <p className="text-xs text-arctic-light mt-1 normal-case">
+                      {new Date(order.createdAt).toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span
+                      className={`inline-flex px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide border ${badge}`}
+                    >
+                      {getOrderStatusLabel(displayStatus ?? order.status)}
+                    </span>
+                    <p className="text-xl font-display text-femme-champagne mt-2">
+                      ${Number(order.totalPrice).toFixed(2)}
+                    </p>
+                  </div>
+                </header>
 
-            <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-gray-50 border-b border-gray-100">
-                  <tr>
-                    <th className="px-5 py-3 font-semibold text-gray-700">Product</th>
-                    <th className="px-5 py-3 font-semibold text-gray-700 w-28">Qty</th>
-                    <th className="px-5 py-3 font-semibold text-gray-700 text-right w-32">
-                      Line total
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {order.items.map((line) => (
-                    <tr key={line.id}>
-                      <td className="px-5 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden flex items-center justify-center shrink-0">
-                            {line.productImageUrl ? (
-                              <img
-                                src={line.productImageUrl}
-                                alt=""
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <span className="text-lg">📦</span>
-                            )}
-                          </div>
-                          <div>
-                            <Link
-                              href={`/products/${line.productId}`}
-                              className="font-medium text-gray-900 hover:text-indigo-600"
-                            >
-                              {line.productName || `Product #${line.productId}`}
-                            </Link>
-                            <p className="text-xs text-gray-500 mt-0.5">
-                              ${Number(line.price).toFixed(2)} each
-                            </p>
-                          </div>
+                <div className="arctic-card overflow-hidden">
+                  <ul className="divide-y divide-white/10">
+                    {order.items.map((line) => (
+                      <li key={line.id} className="flex gap-3 p-4">
+                        <Link
+                          href={`/products/${line.productId}`}
+                          className="w-14 h-14 shrink-0 overflow-hidden bg-white/5 border border-white/10"
+                        >
+                          {line.productImageUrl && (
+                            <img
+                              src={line.productImageUrl}
+                              alt=""
+                              className="w-full h-full object-cover"
+                            />
+                          )}
+                        </Link>
+                        <div className="flex-1 min-w-0">
+                          <Link
+                            href={`/products/${line.productId}`}
+                            className="text-sm text-arctic-deep hover:text-femme-champagne line-clamp-2"
+                          >
+                            {line.productName || `Product #${line.productId}`}
+                          </Link>
+                          <p className="text-xs text-arctic-light mt-1">
+                            {line.quantity} × ${Number(line.price).toFixed(2)}
+                          </p>
                         </div>
-                      </td>
-                      <td className="px-5 py-4 text-gray-700">{line.quantity}</td>
-                      <td className="px-5 py-4 text-right font-semibold text-gray-900">
-                        ${(Number(line.price) * line.quantity).toFixed(2)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                        <p className="text-sm text-femme-champagne shrink-0">
+                          ${(Number(line.price) * line.quantity).toFixed(2)}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              <aside className="arctic-card p-5 lg:sticky lg:top-24">
+                {timelineSteps.length > 0 ? (
+                  <OrderTimeline steps={timelineSteps} log={timelineLog} variant="dark" />
+                ) : (
+                  <p className="text-sm text-arctic-light">No tracking data yet.</p>
+                )}
+              </aside>
             </div>
-          </>
-        )}
-      </div>
+          )}
+        </main>
+        <StoreFooter />
+      </StoreScene>
     </div>
   );
 }

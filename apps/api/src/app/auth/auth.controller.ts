@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Logger,
   Post,
   Req,
   Res,
@@ -16,23 +17,26 @@ import { UsersService } from '../users/users.service';
 import { RegisterDto } from './register.dto';
 import { LoginDto } from './login.dto';
 import { GoogleOAuthConfiguredGuard } from './google-auth.guard';
-import { isGoogleOAuthEnabled } from './google-oauth.util';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const passport = require('passport') as typeof import('passport');
+type AuthUser = {
+  id: number;
+  email: string;
+  role: string;
+  name?: string;
+  avatar?: string | null;
+};
 
 @Controller('auth')
 export class AuthController {
+  private readonly logger = new Logger(AuthController.name);
+
   constructor(
     private authService: AuthService,
     private configService: ConfigService,
     private usersService: UsersService,
   ) {}
 
-  private async attachSession(
-    res: Response,
-    user: { id: number; email: string; role: string },
-  ) {
+  private async attachSession(res: Response, user: AuthUser) {
     const { accessToken, refreshToken } = await this.authService.issueTokens(
       user.id,
       user.email,
@@ -85,50 +89,18 @@ export class AuthController {
   }
 
   @Get('google')
-  @UseGuards(GoogleOAuthConfiguredGuard)
-  googleAuth(@Req() req: Request, @Res() res: Response) {
-    if (
-      !isGoogleOAuthEnabled({
-        clientId: this.configService.get<string>('GOOGLE_CLIENT_ID'),
-        clientSecret: this.configService.get<string>('GOOGLE_CLIENT_SECRET'),
-      })
-    ) {
-      return;
-    }
-    return passport.authenticate('google', { scope: ['email', 'profile'] })(req, res);
+  @UseGuards(GoogleOAuthConfiguredGuard, AuthGuard('google'))
+  googleAuth(@Req() req: { url?: string }) {
+    this.logger.log(`GET ${req.url ?? '/auth/google'} — handing off to Passport (redirect to Google)`);
   }
 
   @Get('google/callback')
-  @UseGuards(GoogleOAuthConfiguredGuard)
-  async googleAuthRedirect(
-    @Req() req: Request,
-    @Res() res: Response,
-  ) {
-    if (
-      !isGoogleOAuthEnabled({
-        clientId: this.configService.get<string>('GOOGLE_CLIENT_ID'),
-        clientSecret: this.configService.get<string>('GOOGLE_CLIENT_SECRET'),
-      })
-    ) {
-      return;
-    }
-
-    return passport.authenticate('google', {
-      session: false,
-      failureRedirect: `${this.configService.get<string>('FRONTEND_URL') ?? 'http://localhost:4200'}/login?error=google_auth_failed`,
-    })(req, res, async (err: Error | null, user: Express.User | false) => {
-      if (err || !user) {
-        const frontend =
-          this.configService.get<string>('FRONTEND_URL') ?? 'http://localhost:4200';
-        return res.redirect(
-          `${frontend}/login?error=${encodeURIComponent('Google sign-in failed')}`,
-        );
-      }
-
-      await this.attachSession(res, user as { id: number; email: string; role: string });
-      const frontendUrl = this.configService.get<string>('FRONTEND_URL');
-      return res.redirect(`${frontendUrl}/login/success`);
-    });
+  @UseGuards(GoogleOAuthConfiguredGuard, AuthGuard('google'))
+  async googleAuthRedirect(@Req() req: { user: AuthUser; url?: string }, @Res() res: Response) {
+    this.logger.log(`GET ${req.url ?? '/auth/google/callback'} — user ${req.user.email}`);
+    await this.attachSession(res, req.user);
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL');
+    return res.redirect(`${frontendUrl}/login/success`);
   }
 
   @Get('me')

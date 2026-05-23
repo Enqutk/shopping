@@ -9,6 +9,11 @@ import { and, desc, eq, inArray, sql } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import type { CheckoutDto, CheckoutLineDto } from './checkout.dto';
 import { RealtimeGateway } from '../realtime/realtime.gateway';
+import {
+  appendOrderStatusEvent,
+  attachTimelineToOrder,
+} from './order-timeline.helper';
+import { STATUS_EVENT_MESSAGES } from '@shopping/shared';
 
 type MergedLine = { productId: number; quantity: number };
 
@@ -91,6 +96,13 @@ export class OrdersService {
           .where(eq(products.id, line.productId));
       }
 
+      await appendOrderStatusEvent(
+        tx,
+        order.id,
+        'PENDING',
+        STATUS_EVENT_MESSAGES.PENDING,
+      );
+
       return this.findOneForUser(userId, order.id, tx);
     });
 
@@ -161,7 +173,7 @@ export class OrdersService {
       .innerJoin(products, eq(products.id, orderItems.productId))
       .where(eq(orderItems.orderId, orderId));
 
-    return {
+    const base = {
       id: order.id,
       totalPrice: String(order.totalPrice),
       status: order.status,
@@ -178,6 +190,8 @@ export class OrdersService {
         productImageUrl: row.productImageUrl,
       })),
     };
+
+    return attachTimelineToOrder(db, base);
   }
 
   async findOneByIdForAdmin(orderId: number) {
@@ -194,8 +208,16 @@ export class OrdersService {
     status: 'PENDING' | 'PAID' | 'SHIPPED' | 'CANCELLED',
   ) {
     const existing = await this.findOneByIdForAdmin(orderId);
-    await this.db.update(orders).set({ status }).where(eq(orders.id, orderId));
-    this.realtime.emitOrderStatus(existing.userId, { orderId, status });
+    if (existing.status !== status) {
+      await this.db.update(orders).set({ status }).where(eq(orders.id, orderId));
+      await appendOrderStatusEvent(
+        this.db,
+        orderId,
+        status,
+        STATUS_EVENT_MESSAGES[status],
+      );
+      this.realtime.emitOrderStatus(existing.userId, { orderId, status });
+    }
     return { orderId, status, userId: existing.userId };
   }
 

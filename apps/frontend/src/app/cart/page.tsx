@@ -5,7 +5,7 @@ import { useMemo } from 'react';
 import StoreHeader from '../../components/StoreHeader';
 import StoreFooter from '../../components/store/StoreFooter';
 import StoreScene from '../../components/immersive/StoreScene';
-import { useCartStore } from '../../store/cart.store';
+import { cartLineId, useCartStore } from '../../store/cart.store';
 
 export default function CartPage() {
   const { items, setQuantity, removeLine } = useCartStore();
@@ -52,7 +52,7 @@ export default function CartPage() {
             <ul className="lg:col-span-2 space-y-4">
               {items.map((line) => (
                 <li
-                  key={line.productId}
+                  key={cartLineId(line)}
                   className="flex gap-4 p-4 rounded-lg bg-femme-surface border border-white/10"
                 >
                   <Link
@@ -79,6 +79,11 @@ export default function CartPage() {
                     <p className="text-indigo-600 font-bold mt-1">
                       ${Number(line.price).toFixed(2)}
                     </p>
+                    {(line.color || line.size) && (
+                      <p className="text-xs text-gray-500 mt-1 normal-case tracking-normal">
+                        {[line.color, line.size].filter(Boolean).join(' · ')}
+                      </p>
+                    )}
                     <p className="text-xs text-gray-400 mt-1">
                       Max {line.stock} (stock)
                     </p>
@@ -86,7 +91,12 @@ export default function CartPage() {
                       <div className="inline-flex items-center rounded-lg border border-gray-200 bg-gray-50">
                         <button
                           type="button"
-                          onClick={() => setQuantity(line.productId, line.quantity - 1)}
+                          onClick={() =>
+                            setQuantity(line.productId, line.quantity - 1, {
+                              color: line.color,
+                              size: line.size,
+                            })
+                          }
                           className="px-3 py-1.5 text-gray-600 hover:bg-gray-100 rounded-l-lg text-lg leading-none"
                           aria-label="Decrease quantity"
                         >
@@ -97,7 +107,12 @@ export default function CartPage() {
                         </span>
                         <button
                           type="button"
-                          onClick={() => setQuantity(line.productId, line.quantity + 1)}
+                          onClick={() =>
+                            setQuantity(line.productId, line.quantity + 1, {
+                              color: line.color,
+                              size: line.size,
+                            })
+                          }
                           disabled={line.quantity >= line.stock}
                           className="px-3 py-1.5 text-gray-600 hover:bg-gray-100 rounded-r-lg text-lg leading-none disabled:opacity-40"
                           aria-label="Increase quantity"
@@ -107,7 +122,12 @@ export default function CartPage() {
                       </div>
                       <button
                         type="button"
-                        onClick={() => removeLine(line.productId)}
+                        onClick={() =>
+                          removeLine(line.productId, {
+                            color: line.color,
+                            size: line.size,
+                          })
+                        }
                         className="text-sm text-rose-600 hover:text-rose-800 font-medium"
                       >
                         Remove

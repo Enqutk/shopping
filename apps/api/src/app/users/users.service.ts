@@ -32,7 +32,12 @@ export class UsersService {
     return result[0];
   }
 
-  async findOrCreate(profile: { name: string; email: string; avatar?: string; provider: string }) {
+  async findOrCreate(profile: {
+    name: string;
+    email: string;
+    avatar?: string;
+    provider: string;
+  }): Promise<{ user: (typeof users.$inferSelect); created: boolean }> {
     let user = await this.findByEmail(profile.email);
     if (!user) {
       const inserted = await this.db.insert(users).values({
@@ -43,8 +48,9 @@ export class UsersService {
         role: 'USER',
       }).returning();
       user = inserted[0];
+      return { user, created: true };
     }
-    return user;
+    return { user, created: false };
   }
 
   async registerWithPassword(input: {

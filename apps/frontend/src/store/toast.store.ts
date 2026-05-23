@@ -9,14 +9,22 @@ export interface ToastItem {
   message: string;
   variant: ToastVariant;
   ts: number;
+  href?: string;
+}
+
+export interface ToastOptions {
+  message: string;
+  variant?: ToastVariant;
+  href?: string;
 }
 
 interface ToastState {
   items: ToastItem[];
-  push: (message: string, variant?: ToastVariant) => void;
-  success: (message: string) => void;
-  error: (message: string) => void;
-  info: (message: string) => void;
+  push: (message: string, variant?: ToastVariant, href?: string) => void;
+  notify: (options: ToastOptions) => void;
+  success: (message: string, href?: string) => void;
+  error: (message: string, href?: string) => void;
+  info: (message: string, href?: string) => void;
   dismiss: (id: string) => void;
 }
 
@@ -24,25 +32,29 @@ function addToast(
   items: ToastItem[],
   message: string,
   variant: ToastVariant,
+  href?: string,
 ): ToastItem[] {
   const id = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-  return [{ id, message, variant, ts: Date.now() }, ...items].slice(0, 8);
+  return [{ id, message, variant, ts: Date.now(), href }, ...items].slice(0, 8);
 }
 
 export const useToastStore = create<ToastState>((set) => ({
   items: [],
 
-  push: (message, variant = 'default') =>
-    set((s) => ({ items: addToast(s.items, message, variant) })),
+  push: (message, variant = 'default', href) =>
+    set((s) => ({ items: addToast(s.items, message, variant, href) })),
 
-  success: (message) =>
-    set((s) => ({ items: addToast(s.items, message, 'success') })),
+  notify: ({ message, variant = 'default', href }) =>
+    set((s) => ({ items: addToast(s.items, message, variant, href) })),
 
-  error: (message) =>
-    set((s) => ({ items: addToast(s.items, message, 'error') })),
+  success: (message, href) =>
+    set((s) => ({ items: addToast(s.items, message, 'success', href) })),
 
-  info: (message) =>
-    set((s) => ({ items: addToast(s.items, message, 'info') })),
+  error: (message, href) =>
+    set((s) => ({ items: addToast(s.items, message, 'error', href) })),
+
+  info: (message, href) =>
+    set((s) => ({ items: addToast(s.items, message, 'info', href) })),
 
   dismiss: (id) =>
     set((s) => ({ items: s.items.filter((t) => t.id !== id) })),

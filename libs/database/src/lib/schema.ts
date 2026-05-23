@@ -58,6 +58,16 @@ export const orderItems = pgTable('order_items', {
   price: numeric('price', { precision: 10, scale: 2 }).notNull(),
 });
 
+export const orderStatusEvents = pgTable('order_status_events', {
+  id: serial('id').primaryKey(),
+  orderId: integer('order_id')
+    .references(() => orders.id, { onDelete: 'cascade' })
+    .notNull(),
+  status: orderStatusEnum('status').notNull(),
+  message: text('message').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 export const usersRelations = relations(users, ({ many }) => ({
   refreshTokens: many(refreshTokens),
   orders: many(orders),
@@ -76,6 +86,14 @@ export const ordersRelations = relations(orders, ({ one, many }) => ({
     references: [users.id],
   }),
   items: many(orderItems),
+  statusEvents: many(orderStatusEvents),
+}));
+
+export const orderStatusEventsRelations = relations(orderStatusEvents, ({ one }) => ({
+  order: one(orders, {
+    fields: [orderStatusEvents.orderId],
+    references: [orders.id],
+  }),
 }));
 
 export const orderItemsRelations = relations(orderItems, ({ one }) => ({

@@ -27,7 +27,7 @@ export default function ProductCard({ product, variant = 'default' }: ProductCar
     e.stopPropagation();
     if (product.stock === 0) return;
     addProduct(product, 1);
-    toastSuccess(`${product.name} added to cart`);
+    toastSuccess(`${product.name} added to cart`, '/cart');
   };
 
   if (isDeal) {
@@ -66,6 +66,12 @@ export default function ProductCard({ product, variant = 'default' }: ProductCar
             <span className="fashion-deal-card__old">${original.toFixed(2)}</span>
           </div>
           <div className="fashion-deal-card__actions">
+            <Link
+              href={`/products/${product.id}`}
+              className="fashion-deal-card__detail"
+            >
+              View detail
+            </Link>
             <button
               type="button"
               onClick={handleAdd}

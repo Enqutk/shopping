@@ -69,16 +69,45 @@ export async function attachTimelineToOrder<T extends {
   };
 }
 
+const STATUS_FLOW: OrderStatus[] = ['PENDING', 'PAID', 'SHIPPED'];
+
 export async function backfillOrderEventsFromOrders(db: Db) {
   const allOrders = await db.select().from(orders);
   for (const order of allOrders) {
     const existing = await fetchOrderStatusEvents(db, order.id);
     if (existing.length > 0) continue;
-    await appendOrderStatusEvent(
-      db,
-      order.id,
-      order.status as OrderStatus,
-      STATUS_EVENT_MESSAGES[order.status as OrderStatus],
-    );
+
+    const status = order.status as OrderStatus;
+    const createdAt = order.createdAt ?? new Date();
+
+    if (status === 'CANCELLED') {
+      await db.insert(orderStatusEvents).values([
+        {
+          orderId: order.id,
+          status: 'PENDING',
+          message: STATUS_EVENT_MESSAGES.PENDING,
+          createdAt,
+        },
+        {
+          orderId: order.id,
+          status: 'CANCELLED',
+          message: STATUS_EVENT_MESSAGES.CANCELLED,
+          createdAt,
+        },
+      ]);
+      continue;
+    }
+
+    const idx = STATUS_FLOW.indexOf(status);
+    const toInsert = STATUS_FLOW.slice(0, idx + 1).map((s) => ({
+      orderId: order.id,
+      status: s,
+      message: STATUS_EVENT_MESSAGES[s],
+      createdAt,
+    }));
+
+    if (toInsert.length > 0) {
+      await db.insert(orderStatusEvents).values(toInsert);
+    }
   }
 }

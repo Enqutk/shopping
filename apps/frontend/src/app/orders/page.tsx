@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import StoreHeader from '../../components/StoreHeader';
 import type { OrderSummary } from '@shopping/shared';
+import { getOrderStatusLabel } from '@shopping/shared';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
 
@@ -89,7 +90,7 @@ export default function OrdersHistoryPage() {
                     <span
                       className={`text-xs font-bold uppercase px-2.5 py-1 rounded-full border ${statusBadge(o.status)}`}
                     >
-                      {o.status}
+                      {getOrderStatusLabel(o.status)}
                     </span>
                     <span className="text-lg font-bold text-indigo-600">
                       ${Number(o.totalPrice).toFixed(2)}

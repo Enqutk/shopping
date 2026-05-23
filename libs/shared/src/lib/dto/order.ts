@@ -1,3 +1,5 @@
+import type { OrderStatusEventDto, OrderTimelineStep } from '../order-timeline.js';
+
 export type OrderStatus = 'PENDING' | 'PAID' | 'SHIPPED' | 'CANCELLED';
 
 export interface CheckoutItemInput {
@@ -28,4 +30,6 @@ export interface OrderDetail {
   status: OrderStatus;
   createdAt: string;
   items: OrderItemLine[];
+  timeline?: OrderTimelineStep[];
+  statusLog?: OrderStatusEventDto[];
 }

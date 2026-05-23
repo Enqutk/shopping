@@ -17,6 +17,7 @@ import { UsersService } from '../users/users.service';
 import { RegisterDto } from './register.dto';
 import { LoginDto } from './login.dto';
 import { GoogleOAuthConfiguredGuard } from './google-auth.guard';
+import { RealtimeGateway } from '../realtime/realtime.gateway';
 
 type AuthUser = {
   id: number;
@@ -34,6 +35,7 @@ export class AuthController {
     private authService: AuthService,
     private configService: ConfigService,
     private usersService: UsersService,
+    private realtime: RealtimeGateway,
   ) {}
 
   private async attachSession(res: Response, user: AuthUser) {
@@ -78,6 +80,12 @@ export class AuthController {
   async register(@Body() dto: RegisterDto, @Res({ passthrough: true }) res: Response) {
     const user = await this.usersService.registerWithPassword(dto);
     await this.attachSession(res, user);
+    this.realtime.emitAdminActivity({
+      type: 'account.registered',
+      message: `New account — ${user.name} (${user.email})`,
+      href: '/admin',
+      meta: { userId: user.id, userName: user.name, userEmail: user.email },
+    });
     return { user: this.toProfile(user) };
   }
 
@@ -96,9 +104,24 @@ export class AuthController {
 
   @Get('google/callback')
   @UseGuards(GoogleOAuthConfiguredGuard, AuthGuard('google'))
-  async googleAuthRedirect(@Req() req: { user: AuthUser; url?: string }, @Res() res: Response) {
+  async googleAuthRedirect(
+    @Req() req: { user: AuthUser & { isNewAccount?: boolean }; url?: string },
+    @Res() res: Response,
+  ) {
     this.logger.log(`GET ${req.url ?? '/auth/google/callback'} — user ${req.user.email}`);
     await this.attachSession(res, req.user);
+    if (req.user.isNewAccount) {
+      this.realtime.emitAdminActivity({
+        type: 'account.google',
+        message: `Google sign-up — ${req.user.name} (${req.user.email})`,
+        href: '/admin',
+        meta: {
+          userId: req.user.id,
+          userName: req.user.name,
+          userEmail: req.user.email,
+        },
+      });
+    }
     const frontendUrl = this.configService.get<string>('FRONTEND_URL');
     return res.redirect(`${frontendUrl}/login/success`);
   }

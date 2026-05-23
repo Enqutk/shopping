@@ -46,6 +46,13 @@ export default function AuthForm({ mode }: AuthFormProps) {
   const passwordStrong = strengthScore === 5;
 
   const backendUrl = apiBaseUrl();
+  const googleAuthEnabled =
+    process.env.NEXT_PUBLIC_GOOGLE_AUTH_ENABLED === 'true';
+  /** OAuth must hit the Nest API on :3000, not the Next proxy (avoids loop if dev runs on wrong port). */
+  const googleAuthHref = `${
+    process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') ||
+    'http://localhost:3000/api'
+  }/auth/google`;
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -226,20 +233,24 @@ export default function AuthForm({ mode }: AuthFormProps) {
             </button>
           </form>
 
-          <div className="relative my-8">
-            <div className="femme-divider !my-0" />
-            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-femme-black px-3 text-[10px] uppercase tracking-widest text-arctic-light">
-              or
-            </span>
-          </div>
+          {googleAuthEnabled && (
+            <>
+              <div className="relative my-8">
+                <div className="femme-divider !my-0" />
+                <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-femme-black px-3 text-[10px] uppercase tracking-widest text-arctic-light">
+                  or
+                </span>
+              </div>
 
-          <a
-            href={`${backendUrl}/auth/google`}
-            className="flex items-center justify-center w-full gap-3 px-6 py-3 border border-white/30 text-sm font-semibold text-white hover:border-femme-champagne hover:text-femme-champagne transition-colors"
-          >
-            <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="" className="w-5 h-5" />
-            Continue with Google
-          </a>
+              <a
+                href={googleAuthHref}
+                className="flex items-center justify-center w-full gap-3 px-6 py-3 border border-white/30 text-sm font-semibold text-white hover:border-femme-champagne hover:text-femme-champagne transition-colors"
+              >
+                <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="" className="w-5 h-5" />
+                Continue with Google
+              </a>
+            </>
+          )}
 
           <p className="text-center text-xs text-arctic-light mt-8 normal-case">
             {isRegister ? (

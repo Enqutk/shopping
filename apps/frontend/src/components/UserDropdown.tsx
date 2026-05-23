@@ -1,6 +1,7 @@
 'use client';
 
 import { useAuthStore } from '../store/auth.store';
+import { syncCartToUser } from '../store/cart.store';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 
@@ -15,6 +16,7 @@ export default function UserDropdown() {
         { withCredentials: true }
       );
       logout();
+      syncCartToUser(null);
       router.push('/login');
     } catch (err) {
       console.error('Logout failed', err);

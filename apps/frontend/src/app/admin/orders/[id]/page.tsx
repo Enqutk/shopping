@@ -2,11 +2,12 @@
 
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import OrderTimeline from '../../../../components/orders/OrderTimeline';
 import type { OrderDetail, OrderStatus } from '@shopping/shared';
 import {
+  buildOrderTimeline,
   getOrderStatusLabel,
   ORDER_STATUS_OPTIONS,
 } from '@shopping/shared';
@@ -79,6 +80,14 @@ export default function AdminOrderDetailPage() {
   }
 
   const badge = ORDER_STATUS_BADGE[order.status] ?? ORDER_STATUS_BADGE.PENDING;
+
+  const { steps: timelineSteps, log: timelineLog } = useMemo(() => {
+    if (!order) return { steps: [], log: [] };
+    if (order.timeline?.length) {
+      return { steps: order.timeline, log: order.statusLog ?? [] };
+    }
+    return buildOrderTimeline(order.status, order.statusLog ?? [], order.createdAt);
+  }, [order]);
 
   return (
     <div className="max-w-5xl">
@@ -157,12 +166,8 @@ export default function AdminOrderDetailPage() {
         </div>
 
         <aside className="bg-slate-900/50 border border-slate-800 rounded-xl p-5">
-          {order.timeline && order.timeline.length > 0 ? (
-            <OrderTimeline
-              steps={order.timeline}
-              log={order.statusLog}
-              variant="dark"
-            />
+          {timelineSteps.length > 0 ? (
+            <OrderTimeline steps={timelineSteps} log={timelineLog} variant="dark" />
           ) : (
             <p className="text-sm text-slate-500">No timeline yet.</p>
           )}

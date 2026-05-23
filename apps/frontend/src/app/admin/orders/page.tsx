@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import axios from 'axios';
 import type { AdminOrderSummary, OrderStatus, PaginatedAdminOrders } from '@shopping/shared';
@@ -12,6 +13,7 @@ import { ORDER_STATUS_BADGE } from '../../../lib/order-status-ui';
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
 
 export default function AdminOrdersPage() {
+  const router = useRouter();
   const [data, setData] = useState<PaginatedAdminOrders | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -201,7 +203,16 @@ export default function AdminOrdersPage() {
             return (
               <article
                 key={o.id}
-                className="rounded-xl border border-slate-800 bg-slate-900/50 p-4 sm:p-5 hover:border-slate-700 transition-colors"
+                role="button"
+                tabIndex={0}
+                onClick={() => router.push(`/admin/orders/${o.id}`)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    router.push(`/admin/orders/${o.id}`);
+                  }
+                }}
+                className="rounded-xl border border-slate-800 bg-slate-900/50 p-4 sm:p-5 hover:border-slate-700 hover:bg-slate-900/80 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/60"
               >
                 <div className="flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-6">
                   <div className="flex-1 min-w-0 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
@@ -209,7 +220,9 @@ export default function AdminOrdersPage() {
                       <p className="text-[10px] uppercase tracking-wider text-slate-500 mb-0.5">
                         Order
                       </p>
-                      <p className="font-semibold text-white">#{o.id}</p>
+                      <p className="font-semibold text-white group-hover:text-indigo-300">
+                        #{o.id}
+                      </p>
                     </div>
                     <div className="col-span-2 sm:col-span-1">
                       <p className="text-[10px] uppercase tracking-wider text-slate-500 mb-0.5">
@@ -239,7 +252,11 @@ export default function AdminOrdersPage() {
                     </div>
                   </div>
 
-                  <div className="flex flex-col sm:flex-row lg:flex-col items-stretch sm:items-end lg:items-end gap-2 lg:min-w-[200px] shrink-0 border-t lg:border-t-0 lg:border-l border-slate-800 pt-4 lg:pt-0 lg:pl-6">
+                  <div
+                    className="flex flex-col sm:flex-row lg:flex-col items-stretch sm:items-end lg:items-end gap-2 lg:min-w-[200px] shrink-0 border-t lg:border-t-0 lg:border-l border-slate-800 pt-4 lg:pt-0 lg:pl-6"
+                    onClick={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
+                  >
                     <span
                       className={`inline-flex justify-center items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border ${badge}`}
                     >
@@ -248,8 +265,12 @@ export default function AdminOrdersPage() {
                     <select
                       value={status}
                       disabled={updatingId === o.id}
-                      onChange={(e) => updateStatus(o.id, e.target.value as OrderStatus)}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 outline-none focus:border-indigo-500/60 disabled:opacity-50"
+                      onClick={(e) => e.stopPropagation()}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        void updateStatus(o.id, e.target.value as OrderStatus);
+                      }}
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 outline-none focus:border-indigo-500/60 disabled:opacity-50 cursor-pointer"
                       aria-label={`Update status for order ${o.id}`}
                     >
                       {ORDER_STATUS_OPTIONS.map((opt) => (

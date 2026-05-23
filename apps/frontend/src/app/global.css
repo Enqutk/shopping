@@ -280,13 +280,19 @@
   }
 
   .fashion-deal-card__actions {
-    @apply mt-4;
+    @apply mt-4 flex gap-2;
   }
 
+  .fashion-deal-card__detail,
   .fashion-deal-card__quick {
-    @apply w-full py-2.5 text-[10px] font-bold uppercase tracking-[0.2em] text-white/90 transition-colors;
+    @apply flex-1 py-2.5 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-white/90 transition-colors;
     background: transparent;
     border: 1px solid rgba(255, 255, 255, 0.35);
+  }
+
+  .fashion-deal-card__detail:hover {
+    border-color: #c9a962;
+    color: #c9a962;
   }
 
   .fashion-deal-card__quick:hover:not(:disabled) {

@@ -22,6 +22,7 @@ const fontScript = Great_Vibes({
   weight: '400',
   variable: '--font-script',
   display: 'swap',
+  preload: false,
 });
 
 export const metadata = {
@@ -35,7 +36,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${fontSans.variable} ${fontDisplay.variable} ${fontScript.variable}`}>
+    <html
+      lang="en"
+      data-scroll-behavior="smooth"
+      className={`${fontSans.variable} ${fontDisplay.variable} ${fontScript.variable}`}
+    >
       <body>
         <a
           href="#main-content"

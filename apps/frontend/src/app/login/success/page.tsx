@@ -3,32 +3,34 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '../../../store/auth.store';
-import axios from 'axios';
+import { apiFetch } from '../../../lib/api-client';
 
 export default function LoginSuccessPage() {
   const router = useRouter();
   const setUser = useAuthStore((state) => state.setUser);
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    let cancelled = false;
+
+    async function fetchProfile() {
       try {
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api'}/auth/me`,
-          { withCredentials: true }
-        );
-        if (response.data) {
-          setUser(response.data);
+        const res = await apiFetch('/auth/me', { credentials: 'include' });
+        if (cancelled) return;
+        if (res.ok) {
+          setUser(await res.json());
           router.push('/');
         } else {
           router.push('/login');
         }
-      } catch (error) {
-        console.error('Failed to fetch profile', error);
-        router.push('/login');
+      } catch {
+        if (!cancelled) router.push('/login');
       }
-    };
+    }
 
     fetchProfile();
+    return () => {
+      cancelled = true;
+    };
   }, [router, setUser]);
 
   return (

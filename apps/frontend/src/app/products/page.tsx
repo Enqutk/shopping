@@ -100,7 +100,7 @@ function ProductsContent() {
       </section>
 
       <div className="sticky top-[4.5rem] z-40 bg-femme-black/95 backdrop-blur-md border-y border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between gap-4">
             <CategoryChips
               value={category}
@@ -111,21 +111,6 @@ function ProductsContent() {
             />
             <span className="hidden sm:inline fashion-see-all pointer-events-none">Browse all →</span>
           </div>
-          <label className="fashion-search w-full max-w-md">
-            <input
-              type="search"
-              placeholder="Search products..."
-              aria-label="Search products"
-              value={search}
-              onChange={(e) => {
-                const q = e.target.value;
-                setSearch(q);
-                setPage(1);
-                syncQuery({ q, page: 1 });
-              }}
-              className="fashion-search__input w-full"
-            />
-          </label>
         </div>
       </div>
 

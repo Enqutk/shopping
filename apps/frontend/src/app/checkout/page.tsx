@@ -37,7 +37,7 @@ export default function CheckoutPage() {
         { withCredentials: true },
       );
       clear();
-      toastSuccess('Order placed successfully');
+      toastSuccess('Order placed successfully', `/orders/${data.id}`);
       router.push(`/orders/${data.id}`);
     } catch (err: unknown) {
       const msg = getErrorMessage(err, 'Checkout failed. Please try again.');

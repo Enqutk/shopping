@@ -32,7 +32,7 @@ describe('UsersService', () => {
         provider: 'google',
       });
       
-      expect(result).toEqual(existingUser);
+      expect(result).toEqual({ user: existingUser, created: false });
       expect(dbMock.insert).not.toHaveBeenCalled();
     });
 
@@ -45,7 +45,10 @@ describe('UsersService', () => {
         provider: 'google',
       });
       
-      expect(result).toEqual({ id: 1, email: 'new@test.com', name: 'New User' });
+      expect(result).toEqual({
+        user: { id: 1, email: 'new@test.com', name: 'New User' },
+        created: true,
+      });
       expect(dbMock.insert).toHaveBeenCalled();
     });
   });

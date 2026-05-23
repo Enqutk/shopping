@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '../../../store/auth.store';
+import { syncCartToUser } from '../../../store/cart.store';
 import { apiFetch } from '../../../lib/api-client';
 
 export default function LoginSuccessPage() {
@@ -17,7 +18,9 @@ export default function LoginSuccessPage() {
         const res = await apiFetch('/auth/me', { credentials: 'include' });
         if (cancelled) return;
         if (res.ok) {
-          setUser(await res.json());
+          const user = await res.json();
+          setUser(user);
+          syncCartToUser(user.id);
           router.push('/');
         } else {
           router.push('/login');

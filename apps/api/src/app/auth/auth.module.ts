@@ -8,6 +8,7 @@ import { GoogleOAuthConfiguredGuard } from './google-auth.guard';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { UsersModule } from '../users/users.module';
+import { RealtimeModule } from '../realtime/realtime.module';
 const authProviders = [
   AuthService,
   JwtStrategy,
@@ -18,6 +19,7 @@ const authProviders = [
 @Module({
   imports: [
     UsersModule,
+    RealtimeModule,
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],

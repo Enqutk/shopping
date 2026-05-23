@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import { useAuthStore } from '../../store/auth.store';
+import { syncCartToUser } from '../../store/cart.store';
 import { apiBaseUrl } from '../../lib/api-client';
 
 type AuthMode = 'login' | 'register';
@@ -83,6 +84,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
       });
 
       setUser(data.user);
+      syncCartToUser(data.user.id);
       router.push(data.user.role === 'ADMIN' ? '/admin' : '/');
       router.refresh();
     } catch (err) {

@@ -64,6 +64,14 @@ export default function AdminOrderDetailPage() {
     }
   };
 
+  const { steps: timelineSteps, log: timelineLog } = useMemo(() => {
+    if (!order) return { steps: [], log: [] };
+    if (order.timeline?.length) {
+      return { steps: order.timeline, log: order.statusLog ?? [] };
+    }
+    return buildOrderTimeline(order.status, order.statusLog ?? [], order.createdAt);
+  }, [order]);
+
   if (loading) {
     return <div className="py-16 text-center text-slate-400 text-sm">Loading order…</div>;
   }
@@ -80,14 +88,6 @@ export default function AdminOrderDetailPage() {
   }
 
   const badge = ORDER_STATUS_BADGE[order.status] ?? ORDER_STATUS_BADGE.PENDING;
-
-  const { steps: timelineSteps, log: timelineLog } = useMemo(() => {
-    if (!order) return { steps: [], log: [] };
-    if (order.timeline?.length) {
-      return { steps: order.timeline, log: order.statusLog ?? [] };
-    }
-    return buildOrderTimeline(order.status, order.statusLog ?? [], order.createdAt);
-  }, [order]);
 
   return (
     <div className="max-w-5xl">

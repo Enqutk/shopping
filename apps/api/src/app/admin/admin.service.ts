@@ -1,5 +1,6 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { DATABASE_CONNECTION, orderItems, orders, products, users } from '@shopping/database';
+import { attachTimelineToOrder } from '../orders/order-timeline.helper';
 import { and, desc, eq, gte, ilike, lte, or, sql, type SQL } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
@@ -220,7 +221,7 @@ export class AdminService {
 
     const itemCount = itemRows.reduce((n, i) => n + i.quantity, 0);
 
-    return {
+    const base = {
       ...this.mapOrderRow({
         ...order,
         itemCount,
@@ -234,6 +235,8 @@ export class AdminService {
         productImageUrl: row.productImageUrl,
       })),
     };
+
+    return attachTimelineToOrder(this.db, base);
   }
 
   private mapOrderRow(r: {

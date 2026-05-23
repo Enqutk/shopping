@@ -3,6 +3,7 @@
 import { useAuthStore } from '../store/auth.store';
 import { syncCartToUser } from '../store/cart.store';
 import axios from 'axios';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 export default function UserDropdown() {
@@ -36,9 +37,17 @@ export default function UserDropdown() {
           </div>
         )}
         <span className="text-sm font-medium text-white/80 hidden sm:inline">{user.name}</span>
+        {user.role === 'ADMIN' && (
+          <Link
+            href="/admin"
+            className="text-[10px] font-bold uppercase tracking-[0.15em] text-femme-champagne hover:text-femme-champagne-light transition-colors border border-femme-champagne/40 rounded-full px-3 py-1"
+          >
+            Admin panel
+          </Link>
+        )}
         <button
           onClick={handleLogout}
-          className="ml-2 text-[10px] uppercase tracking-wider text-white/50 hover:text-femme-champagne"
+          className="text-[10px] uppercase tracking-wider text-white/50 hover:text-femme-champagne"
         >
           Logout
         </button>

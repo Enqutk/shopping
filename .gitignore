@@ -48,4 +48,12 @@ Thumbs.db
 out
 
 test-output
+
+# Secrets & local env (never commit)
 .env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+secrets.json

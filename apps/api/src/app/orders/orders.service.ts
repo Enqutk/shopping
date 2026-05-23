@@ -4,7 +4,7 @@ import {
   BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
-import { DATABASE_CONNECTION, orderItems, orders, products } from '@shopping/database';
+import { DATABASE_CONNECTION, orderItems, orders, products, users } from '@shopping/database';
 import { and, desc, eq, inArray, sql } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import type { CheckoutDto, CheckoutLineDto } from './checkout.dto';
@@ -13,7 +13,7 @@ import {
   appendOrderStatusEvent,
   attachTimelineToOrder,
 } from './order-timeline.helper';
-import { STATUS_EVENT_MESSAGES } from '@shopping/shared';
+import { getOrderStatusLabel, STATUS_EVENT_MESSAGES } from '@shopping/shared';
 
 type MergedLine = { productId: number; quantity: number };
 
@@ -107,6 +107,25 @@ export class OrdersService {
     });
 
     this.realtime.emitOrderCreated(userId, result);
+
+    const customer = await this.db
+      .select({ name: users.name, email: users.email })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    const c = customer[0];
+    this.realtime.emitAdminActivity({
+      type: 'order.placed',
+      message: `New order #${result.id} — ${c?.name ?? 'Customer'} · $${Number(result.totalPrice).toFixed(2)}`,
+      href: `/admin/orders/${result.id}`,
+      meta: {
+        orderId: result.id,
+        userId,
+        userName: c?.name ?? undefined,
+        userEmail: c?.email ?? undefined,
+      },
+    });
+
     return result;
   }
 
@@ -217,6 +236,25 @@ export class OrdersService {
         STATUS_EVENT_MESSAGES[status],
       );
       this.realtime.emitOrderStatus(existing.userId, { orderId, status });
+
+      const customer = await this.db
+        .select({ name: users.name, email: users.email })
+        .from(users)
+        .where(eq(users.id, existing.userId))
+        .limit(1);
+      const c = customer[0];
+      this.realtime.emitAdminActivity({
+        type: 'order.status_updated',
+        message: `Order #${orderId} → ${getOrderStatusLabel(status)} (${c?.name ?? 'customer'})`,
+        href: `/admin/orders/${orderId}`,
+        meta: {
+          orderId,
+          userId: existing.userId,
+          userName: c?.name ?? undefined,
+          userEmail: c?.email ?? undefined,
+          status,
+        },
+      });
     }
     return { orderId, status, userId: existing.userId };
   }

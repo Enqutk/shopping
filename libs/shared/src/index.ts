@@ -5,4 +5,6 @@ export * from './lib/dto/auth.js';
 export * from './lib/dto/product.js';
 export * from './lib/product-options.js';
 export * from './lib/dto/order.js';
+export * from './lib/order-status.js';
+export * from './lib/order-timeline.js';
 export * from './lib/dto/admin.js';

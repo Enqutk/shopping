@@ -63,6 +63,13 @@
    DATABASE_URL="postgresql://postgres:postgres@localhost:5432/shopping" npx tsx scripts/seed-products.ts
    ```
 
+7. **Order timeline** (after pulling updates that add `order_status_events`):
+
+   ```sh
+   DATABASE_URL="postgresql://postgres:postgres@localhost:5432/shopping" npx drizzle-kit migrate
+   DATABASE_URL="postgresql://postgres:postgres@localhost:5432/shopping" npx tsx scripts/backfill-order-events.ts
+   ```
+
 ## Docker (deployment-ready baseline)
 
 Start PostgreSQL, API, and frontend:

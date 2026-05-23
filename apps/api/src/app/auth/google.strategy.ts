@@ -27,12 +27,12 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     done: VerifyCallback,
   ): Promise<any> {
     const { name, emails, photos } = profile;
-    const user = await this.usersService.findOrCreate({
+    const { user, created } = await this.usersService.findOrCreate({
       email: emails[0].value,
       name: name.givenName + ' ' + name.familyName,
       avatar: photos[0].value,
       provider: 'google',
     });
-    done(null, user);
+    done(null, { ...user, isNewAccount: created });
   }
 }

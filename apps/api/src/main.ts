@@ -1,6 +1,8 @@
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { IoAdapter } from '@nestjs/platform-socket.io';
+import { join } from 'path';
 import { AppModule } from './app/app.module';
 import type { RequestHandler } from 'express';
 
@@ -9,8 +11,11 @@ import type { RequestHandler } from 'express';
 const cookieParser = require('cookie-parser') as () => RequestHandler;
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: ['error', 'warn', 'log'],
+  });
+  app.useStaticAssets(join(process.cwd(), 'uploads'), {
+    prefix: '/api/uploads/',
   });
   app.useWebSocketAdapter(new IoAdapter(app));
 

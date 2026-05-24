@@ -1,7 +1,8 @@
 import { IsString, IsNumber, IsPositive, IsUrl, IsOptional, IsInt, Min, MaxLength, IsNotEmpty } from 'class-validator';
 import { Type } from 'class-transformer';
+import { ProductVariantFieldsDto } from './product-variant.dto';
 
-export class CreateProductDto {
+export class CreateProductDto extends ProductVariantFieldsDto {
   @IsNotEmpty()
   @IsString()
   @MaxLength(256)

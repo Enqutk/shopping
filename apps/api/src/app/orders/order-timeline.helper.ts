@@ -1,6 +1,9 @@
 import {
+  asc,
+  eq,
   orderStatusEvents,
   orders,
+  type AppDatabase,
 } from '@shopping/database';
 import {
   buildOrderTimeline,
@@ -8,11 +11,6 @@ import {
   type OrderStatus,
   type OrderStatusEventDto,
 } from '@shopping/shared';
-import { asc, eq } from 'drizzle-orm';
-import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
-
-type Db = NodePgDatabase<any>;
-
 const STATUS_FLOW: OrderStatus[] = [
   'PENDING',
   'AWAITING_CONFIRMATION',
@@ -27,7 +25,7 @@ function statusesForOrder(status: OrderStatus): OrderStatus[] {
 }
 
 export async function appendOrderStatusEvent(
-  db: Db,
+  db: AppDatabase,
   orderId: number,
   status: OrderStatus,
   message?: string,
@@ -40,7 +38,7 @@ export async function appendOrderStatusEvent(
 }
 
 export async function fetchOrderStatusEvents(
-  db: Db,
+  db: AppDatabase,
   orderId: number,
 ): Promise<OrderStatusEventDto[]> {
   const rows = await db
@@ -62,7 +60,7 @@ export async function fetchOrderStatusEvents(
 
 /** Ensures DB log has an entry for each step up to the order's current status. */
 export async function syncEventsToCurrentStatus(
-  db: Db,
+  db: AppDatabase,
   orderId: number,
   currentStatus: OrderStatus,
   orderCreatedAt: string | Date,
@@ -92,7 +90,7 @@ export async function attachTimelineToOrder<T extends {
   id: number;
   status: string;
   createdAt: string | Date;
-}>(db: Db, order: T) {
+}>(db: AppDatabase, order: T) {
   const createdAt =
     order.createdAt instanceof Date
       ? order.createdAt.toISOString()
@@ -111,7 +109,7 @@ export async function attachTimelineToOrder<T extends {
   };
 }
 
-export async function backfillOrderEventsFromOrders(db: Db) {
+export async function backfillOrderEventsFromOrders(db: AppDatabase) {
   const allOrders = await db.select().from(orders);
   for (const order of allOrders) {
     const createdAt =

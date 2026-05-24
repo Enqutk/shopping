@@ -13,6 +13,7 @@ import {
   ORDER_STATUS_OPTIONS,
 } from '@shopping/shared';
 import { ORDER_STATUS_BADGE } from '../../../../lib/order-status-ui';
+import { adminUi } from '../../../../lib/admin-ui';
 
 type AdminOrderDetail = OrderDetail & {
   userId: number;
@@ -79,14 +80,14 @@ export default function AdminOrderDetailPage() {
   }, [order]);
 
   if (loading) {
-    return <div className="py-16 text-center text-slate-400 text-sm">Loading order…</div>;
+    return <div className={`py-16 text-center ${adminUi.muted} text-sm`}>Loading order…</div>;
   }
 
   if (!order) {
     return (
       <div className="py-16 text-center">
-        <p className="text-slate-400">Order not found.</p>
-        <Link href="/admin/orders" className="text-indigo-400 text-sm mt-4 inline-block hover:underline">
+        <p className={adminUi.muted}>Order not found.</p>
+        <Link href="/admin/orders" className={`${adminUi.link} mt-4 inline-block`}>
           ← Back to orders
         </Link>
       </div>
@@ -97,30 +98,27 @@ export default function AdminOrderDetailPage() {
 
   return (
     <div className="max-w-5xl">
-      <Link
-        href="/admin/orders"
-        className="text-xs text-slate-500 hover:text-slate-300 mb-4 inline-block"
-      >
+      <Link href="/admin/orders" className={`text-xs ${adminUi.muted} hover:text-femme-champagne mb-4 inline-block transition-colors`}>
         ← All orders
       </Link>
 
       <header className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-white">Order #{order.id}</h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <h1 className={adminUi.pageTitle}>Order #{order.id}</h1>
+          <p className={`text-sm ${adminUi.muted} mt-1 normal-case tracking-normal`}>
             {order.userName} · {order.userEmail}
           </p>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className={`text-xs ${adminUi.muted} mt-1 opacity-80`}>
             {new Date(order.createdAt).toLocaleString()}
           </p>
         </div>
-        <div className="flex flex-col items-stretch sm:items-end gap-2 min-w-[180px]">
+        <div className="flex flex-col items-stretch sm:items-end gap-2 min-w-[200px]">
           <span
-            className={`inline-flex justify-center px-3 py-1 rounded-full text-xs font-bold uppercase border ${badge}`}
+            className={`inline-flex justify-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide border ${badge}`}
           >
             {getOrderStatusLabel(order.status)}
           </span>
-          <p className="text-xl font-semibold text-white text-right">
+          <p className="text-xl font-display text-femme-champagne text-right">
             ${Number(order.totalPrice).toFixed(2)}
           </p>
           {order.status === 'AWAITING_CONFIRMATION' && (
@@ -128,7 +126,7 @@ export default function AdminOrderDetailPage() {
               type="button"
               disabled={updating}
               onClick={() => void confirmPayment()}
-              className="w-full py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase tracking-wide disabled:opacity-50"
+              className={`${adminUi.btnPrimary} w-full`}
             >
               {updating ? 'Confirming…' : 'Confirm payment'}
             </button>
@@ -137,7 +135,7 @@ export default function AdminOrderDetailPage() {
             value={order.status}
             disabled={updating}
             onChange={(e) => updateStatus(e.target.value as OrderStatus)}
-            className="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200"
+            className={adminUi.select}
           >
             {ORDER_STATUS_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -149,51 +147,53 @@ export default function AdminOrderDetailPage() {
       </header>
 
       <div className="grid lg:grid-cols-[1fr_300px] gap-8 items-start">
-        <div className="bg-slate-900/50 border border-slate-800 rounded-xl overflow-hidden">
-          <div className="px-4 py-3 border-b border-slate-800 text-xs font-bold uppercase text-slate-500">
+        <div className={adminUi.card}>
+          <div className={`px-4 py-3 border-b ${adminUi.borderSubtle} ${adminUi.sectionTitle}`}>
             Line items ({order.itemCount})
           </div>
-          <ul className="divide-y divide-slate-800">
+          <ul className={`divide-y ${adminUi.divide}`}>
             {order.items.map((line) => {
               const variant = formatOrderLineVariant(line);
               return (
-              <li key={line.id} className="flex gap-3 p-4">
-                <div className="w-12 h-12 shrink-0 bg-slate-800 overflow-hidden rounded">
-                  {line.productImageUrl && (
-                    <img src={line.productImageUrl} alt="" className="w-full h-full object-cover" />
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <button
-                    type="button"
-                    onClick={() => router.push(`/products/${line.productId}`)}
-                    className="text-sm text-slate-200 hover:text-white text-left"
-                  >
-                    {line.productName}
-                  </button>
-                  {variant ? (
-                    <p className="text-xs text-indigo-300/90 mt-1 font-medium">{variant}</p>
-                  ) : (
-                    <p className="text-xs text-slate-600 mt-1 italic">No color/size recorded</p>
-                  )}
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Qty {line.quantity} · ${Number(line.price).toFixed(2)} each
+                <li key={line.id} className="flex gap-3 p-4">
+                  <div className={`w-12 h-12 shrink-0 bg-femme-black border ${adminUi.borderSubtle} overflow-hidden rounded`}>
+                    {line.productImageUrl && (
+                      <img src={line.productImageUrl} alt="" className="w-full h-full object-cover" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <button
+                      type="button"
+                      onClick={() => router.push(`/products/${line.productId}`)}
+                      className="text-sm text-arctic-deep hover:text-femme-champagne text-left transition-colors"
+                    >
+                      {line.productName}
+                    </button>
+                    {variant ? (
+                      <p className="text-xs text-femme-champagne/90 mt-1 font-medium">{variant}</p>
+                    ) : (
+                      <p className={`text-xs ${adminUi.muted} mt-1 italic opacity-60`}>
+                        No color/size recorded
+                      </p>
+                    )}
+                    <p className={`text-xs ${adminUi.muted} mt-0.5`}>
+                      Qty {line.quantity} · ${Number(line.price).toFixed(2)} each
+                    </p>
+                  </div>
+                  <p className="text-sm font-semibold text-femme-champagne shrink-0">
+                    ${(Number(line.price) * line.quantity).toFixed(2)}
                   </p>
-                </div>
-                <p className="text-sm font-medium text-white shrink-0">
-                  ${(Number(line.price) * line.quantity).toFixed(2)}
-                </p>
-              </li>
-            );
+                </li>
+              );
             })}
           </ul>
         </div>
 
-        <aside className="bg-slate-900/50 border border-slate-800 rounded-xl p-5">
+        <aside className={adminUi.cardPad}>
           {timelineSteps.length > 0 ? (
             <OrderTimeline steps={timelineSteps} log={timelineLog} variant="dark" />
           ) : (
-            <p className="text-sm text-slate-500">No timeline yet.</p>
+            <p className={`text-sm ${adminUi.muted}`}>No timeline yet.</p>
           )}
         </aside>
       </div>

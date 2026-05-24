@@ -9,6 +9,7 @@ import { Server, Socket } from 'socket.io';
 
 export type AdminActivityType =
   | 'order.placed'
+  | 'order.payment_submitted'
   | 'account.registered'
   | 'account.google'
   | 'order.status_updated';

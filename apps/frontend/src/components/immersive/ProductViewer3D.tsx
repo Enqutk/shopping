@@ -44,9 +44,6 @@ export default function ProductViewer3D({ imageUrl, name }: ProductViewer3DProps
           <div className="product-viewer-3d__shine" aria-hidden />
         </div>
       </div>
-      <p className="text-[10px] uppercase tracking-[0.25em] text-arctic-deep/50 text-center mt-4">
-        Move cursor to inspect · 360° feel
-      </p>
     </div>
   );
 }

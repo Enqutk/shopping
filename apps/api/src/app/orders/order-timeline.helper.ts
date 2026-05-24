@@ -13,7 +13,12 @@ import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 type Db = NodePgDatabase<any>;
 
-const STATUS_FLOW: OrderStatus[] = ['PENDING', 'PAID', 'SHIPPED'];
+const STATUS_FLOW: OrderStatus[] = [
+  'PENDING',
+  'AWAITING_CONFIRMATION',
+  'PAID',
+  'SHIPPED',
+];
 
 function statusesForOrder(status: OrderStatus): OrderStatus[] {
   if (status === 'CANCELLED') return ['PENDING', 'CANCELLED'];

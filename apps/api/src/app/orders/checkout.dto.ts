@@ -1,5 +1,14 @@
 import { Type } from 'class-transformer';
-import { ArrayMinSize, IsArray, IsInt, Min, ValidateNested } from 'class-validator';
+import {
+  ArrayMinSize,
+  IsArray,
+  IsInt,
+  IsOptional,
+  IsString,
+  MaxLength,
+  Min,
+  ValidateNested,
+} from 'class-validator';
 
 export class CheckoutLineDto {
   @IsInt()
@@ -9,6 +18,16 @@ export class CheckoutLineDto {
   @IsInt()
   @Min(1)
   quantity: number;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  color?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(32)
+  size?: string;
 }
 
 export class CheckoutDto {

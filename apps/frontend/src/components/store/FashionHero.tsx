@@ -18,7 +18,7 @@ export default function FashionHero() {
             Seasonal Sale
           </h1>
           <p className="fashion-hero__subtitle">
-            Curated shoes, clothes, accessories &amp; more — editorial picks for every aisle.
+            Curated shoes, clothes, accessories &amp; more: editorial picks for every aisle.
           </p>
           <Link href="/products" className="btn-ghost mt-6">
             Shop now

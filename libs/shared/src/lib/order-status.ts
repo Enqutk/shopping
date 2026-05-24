@@ -16,12 +16,12 @@ export const ORDER_STATUS_OPTIONS: OrderStatusOption[] = [
   {
     value: 'AWAITING_CONFIRMATION',
     label: 'Verifying payment',
-    description: 'Customer paid — awaiting store confirmation',
+    description: 'Customer paid; awaiting store confirmation',
   },
   {
     value: 'PAID',
     label: 'Paid',
-    description: 'Payment confirmed — ready to fulfill',
+    description: 'Payment confirmed; ready to fulfill',
   },
   {
     value: 'SHIPPED',

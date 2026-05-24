@@ -42,7 +42,7 @@ export default function ParallaxHero({ children }: ParallaxHeroProps) {
               <span className="text-luxe-accent">virtual aisle</span>
             </h1>
             <p className="mt-6 text-arctic-deep/80 text-sm sm:text-base max-w-md leading-relaxed normal-case tracking-normal font-normal">
-              Step inside a real boutique — browse shoes, clothes, accessories & more like you&apos;re
+              Step inside a real boutique: browse shoes, clothes, accessories & more like you&apos;re
               there shopping.
             </p>
             <div className="mt-10 flex flex-wrap items-center gap-6">

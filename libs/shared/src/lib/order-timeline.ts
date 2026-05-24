@@ -131,8 +131,8 @@ function synthesizeEvents(
 
 export const STATUS_EVENT_MESSAGES: Record<OrderStatus, string> = {
   PENDING: 'Order placed',
-  AWAITING_CONFIRMATION: 'Payment submitted — awaiting confirmation',
-  PAID: 'Payment confirmed — delivery in 7–15 days',
+  AWAITING_CONFIRMATION: 'Payment submitted; awaiting confirmation',
+  PAID: 'Payment confirmed; delivery in 7-15 days',
   SHIPPED: 'Order delivered',
   CANCELLED: 'Order cancelled',
 };

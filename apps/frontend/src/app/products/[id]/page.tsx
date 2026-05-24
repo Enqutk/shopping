@@ -164,7 +164,7 @@ export default function ProductDetailPage() {
 
               <div className="mt-8">
                 <p className="text-xs font-bold uppercase tracking-widest text-arctic-deep/60 mb-3">
-                  Color — {color}
+                  Color: {color}
                 </p>
                 <div className="flex flex-wrap gap-3" role="group" aria-label="Select color">
                   {options.colors.map((c) => (
@@ -261,7 +261,7 @@ export default function ProductDetailPage() {
                 {tab === 'description'
                   ? product.description ||
                     'Premium quality piece from our curated collection. Crafted for comfort and style.'
-                  : 'Reviews coming soon — be the first to share your experience.'}
+                  : 'Reviews coming soon. Be the first to share your experience.'}
               </p>
 
               {(color || size) && (

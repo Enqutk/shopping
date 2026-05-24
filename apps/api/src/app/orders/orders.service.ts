@@ -136,7 +136,7 @@ export class OrdersService {
     const c = customer[0];
     this.realtime.emitAdminActivity({
       type: 'order.placed',
-      message: `New order #${result.id} — ${c?.name ?? 'Customer'} · $${Number(result.totalPrice).toFixed(2)}`,
+      message: `New order #${result.id} · ${c?.name ?? 'Customer'} · $${Number(result.totalPrice).toFixed(2)}`,
       href: `/admin/orders/${result.id}`,
       meta: {
         orderId: result.id,
@@ -253,7 +253,7 @@ export class OrdersService {
     }
     if (existing.status === 'AWAITING_CONFIRMATION') {
       throw new BadRequestException(
-        'Payment already submitted — waiting for confirmation',
+        'Payment already submitted · waiting for confirmation',
       );
     }
     if (existing.status !== 'PENDING') {
@@ -283,7 +283,7 @@ export class OrdersService {
     const c = customer[0];
     this.realtime.emitAdminActivity({
       type: 'order.payment_submitted',
-      message: `Payment to confirm — Order #${orderId} · ${c?.name ?? 'Customer'} · $${Number(existing.totalPrice).toFixed(2)}`,
+      message: `Payment to confirm · Order #${orderId} · ${c?.name ?? 'Customer'} · $${Number(existing.totalPrice).toFixed(2)}`,
       href: `/admin/orders/${orderId}`,
       meta: {
         orderId,
@@ -320,7 +320,7 @@ export class OrdersService {
     const c = customer[0];
     this.realtime.emitAdminActivity({
       type: 'order.status_updated',
-      message: `Payment confirmed — Order #${orderId} · ${c?.name ?? 'Customer'}`,
+      message: `Payment confirmed · Order #${orderId} · ${c?.name ?? 'Customer'}`,
       href: `/admin/orders/${orderId}`,
       meta: {
         orderId,

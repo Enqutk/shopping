@@ -47,7 +47,7 @@ export default function HomePage() {
             <p className="femme-celebrate__script">Natural Beauty</p>
             <h2 className="femme-celebrate__title">Clothing Store</h2>
             <p className="section-sub mx-auto mt-4 text-center">
-              Editorial essentials across every category — timeless pieces for the modern wardrobe.
+              Editorial essentials across every category: timeless pieces for the modern wardrobe.
             </p>
             <div className="femme-divider" />
             <Link href="/products" className="btn-ghost">

@@ -18,7 +18,7 @@ const FILTER_PILLS = PRODUCT_CATEGORIES.filter((c) => c.value).map((c) => c.labe
 
 export default function FeaturedProducts({
   title = "Today's featured deals",
-  subtitle = 'Editorial picks — limited seasonal offers',
+  subtitle = 'Editorial picks: limited seasonal offers',
   limit = 8,
 }: FeaturedProductsProps) {
   const [products, setProducts] = useState<Product[]>([]);
@@ -85,7 +85,7 @@ export default function FeaturedProducts({
             </button>
           </div>
         ) : products.length === 0 ? (
-          <p className="text-arctic-deep/50 text-sm">No products yet — add some in admin.</p>
+          <p className="text-arctic-deep/50 text-sm">No products yet. Add some in admin.</p>
         ) : (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {products.map((p) => (

@@ -111,7 +111,7 @@ async function main() {
 
   const existing = await db.select({ id: products.id }).from(products).limit(1);
   if (existing.length > 0) {
-    console.log('Products already exist — skipping seed (delete rows first to re-seed).');
+    console.log('Products already exist; skipping seed (delete rows first to re-seed).');
     await pool.end();
     return;
   }

@@ -5,9 +5,9 @@
 const SCENES = {
   /** Bright boutique / clothing store aisle */
   main: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1920&q=85&auto=format&fit=crop',
-  /** Fashion shopping — depth on the right */
+  /** Fashion shopping : depth on the right */
   accent: 'https://images.unsplash.com/photo-1483985988350-763728e3685b?w=1200&q=85&auto=format&fit=crop',
-  /** Bags / checkout vibe — foreground feel */
+  /** Bags / checkout vibe : foreground feel */
   foreground: 'https://images.unsplash.com/photo-1555529669-2269763671c4?w=1400&q=85&auto=format&fit=crop',
 } as const;
 
@@ -29,7 +29,7 @@ export default function ShoppingSceneBackground({
 
   return (
     <div className={`shopping-scene-bg ${className}`} aria-hidden>
-      {/* Main store interior — slow zoom */}
+      {/* Main store interior : slow zoom */}
       <div
         className="shopping-scene-bg__layer shopping-scene-bg__layer--main"
         style={{
@@ -38,7 +38,7 @@ export default function ShoppingSceneBackground({
         }}
       />
 
-      {/* Right side — shopper / fashion depth */}
+      {/* Right side : shopper / fashion depth */}
       <div
         className="shopping-scene-bg__layer shopping-scene-bg__layer--accent"
         style={{
@@ -47,7 +47,7 @@ export default function ShoppingSceneBackground({
         }}
       />
 
-      {/* Bottom — mall aisle / walking vibe */}
+      {/* Bottom : mall aisle / walking vibe */}
       <div
         className="shopping-scene-bg__layer shopping-scene-bg__layer--foreground"
         style={{
@@ -56,7 +56,7 @@ export default function ShoppingSceneBackground({
         }}
       />
 
-      {/* Metallic grey-blue wash — shiny brand overlay */}
+      {/* Metallic grey-blue wash : shiny brand overlay */}
       <div className="shopping-scene-bg__wash" />
 
       {/* Soft vignette for text contrast */}

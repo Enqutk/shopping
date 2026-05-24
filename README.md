@@ -1,189 +1,207 @@
-# Shopping
+<p align="center">
+  <img src="docs/luxe-logo.svg" alt="LUXE" width="180" />
+</p>
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+# LUXE Shopping
 
+Hi! This is my internship first task project: an online fashion store with a customer-facing shop and an admin panel. Customers can sign in with **Google**, browse products, add to cart, place orders, and pay (demo checkout). Admins can manage products, confirm payments, and see live activity on the dashboard.
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
+**Tech:** Next.js (frontend), NestJS (API), PostgreSQL, Drizzle ORM. Real-time updates use Socket.IO (order status, admin notifications).
 
+---
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/nx-api/next?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+## What to open after setup
 
-## Local development
+| What | URL |
+|------|-----|
+| Shop (homepage, products, cart) | http://localhost:4200 |
+| Admin dashboard | http://localhost:4200/admin |
+| API (for testing) | http://localhost:3000/api |
 
-1. **PostgreSQL** — ensure a server is listening on port `5432` and create a database named `shopping` (or point `DATABASE_URL` at your own DB):
+The frontend runs on **port 4200** and the API on **port 3000**. Both need to be running at the same time.
 
-   ```sh
-   # Example with Docker (adjust container name / user as needed)
-   docker exec <postgres-container> psql -U postgres -d postgres -c "CREATE DATABASE shopping;"
-   ```
+---
 
-2. **Migrations** — from the repo root:
+## Before you start
 
-   ```sh
-   DATABASE_URL="postgresql://postgres:postgres@localhost:5432/shopping" npx drizzle-kit migrate
-   ```
+You will need:
 
-3. **API** — in one terminal (replace secrets with real values for Google OAuth in non-local use):
+- **Node.js 20+** and **npm**
+- **Docker Desktop** (easiest way to run the database)
 
-   ```sh
-   DATABASE_URL="postgresql://postgres:postgres@localhost:5432/shopping" \
-   JWT_SECRET="your-jwt-secret-at-least-32-chars" \
-   GOOGLE_CLIENT_ID="your-google-client-id" \
-   GOOGLE_CLIENT_SECRET="your-google-client-secret" \
-   FRONTEND_URL="http://localhost:4200" \
-   PORT=3000 \
-   npx nx serve api --configuration=development
-   ```
+If you do not use Docker, you can use any local Postgres database named `shopping` and update `DATABASE_URL` in `.env`.
 
-   API base URL: `http://localhost:3000/api`
+---
 
-   **Google Sign-In (`401: invalid_client` / “OAuth client was not found”)** — create an OAuth **Web client** in [Google Cloud Console](https://console.cloud.google.com/apis/credentials) → APIs & Services → Credentials → Create credentials → OAuth client ID. Set **Authorized redirect URI** to exactly:
+## How to run it (step by step)
 
-   `http://localhost:3000/api/auth/google/callback`
+Open a terminal in the project folder and follow these steps in order.
 
-   (If the API runs on another host/port, set `GOOGLE_CALLBACK_URL` in `.env` to the full callback URL and add that same URI in Google Cloud.) Put the **Client ID** and **Client secret** in `.env` as `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` — do not use placeholder values.
+**1. Install packages**
 
-4. **Frontend** — in another terminal (port `4200` avoids clashing with the API on `3000`):
+```bash
+npm install
+```
 
-   ```sh
-   NEXT_PUBLIC_API_URL="http://localhost:3000/api" npx nx dev frontend -- --port 4200
-   ```
+**2. Start the database**
 
-   Optional: `NEXT_PUBLIC_REALTIME_URL=http://localhost:3000` if the Socket.IO server is not the same origin as `NEXT_PUBLIC_API_URL` without the `/api` suffix (otherwise the client strips `/api` automatically).
+```bash
+docker compose up postgres -d
+```
 
-   Open **http://localhost:4200**
+Give it a few seconds, then check it is running with `docker compose ps`.
 
-   **Admin dashboard** (requires a user with `ADMIN` role): **http://localhost:4200/admin** — analytics, recent orders, product and order management.
+**3. Set up environment variables**
 
-5. **Environment template** — copy `.env.example` to `.env` and fill in secrets before deploying.
-
-6. **Demo products** (optional — populates every category if the catalog is empty):
-
-   ```sh
-   DATABASE_URL="postgresql://postgres:postgres@localhost:5432/shopping" npx tsx scripts/seed-products.ts
-   ```
-
-7. **Order timeline** (after pulling updates that add `order_status_events`):
-
-   ```sh
-   DATABASE_URL="postgresql://postgres:postgres@localhost:5432/shopping" npx drizzle-kit migrate
-   DATABASE_URL="postgresql://postgres:postgres@localhost:5432/shopping" npx tsx scripts/backfill-order-events.ts
-   ```
-
-## Docker (deployment-ready baseline)
-
-Start PostgreSQL, API, and frontend:
-
-```sh
+```bash
 cp .env.example .env
-# Edit .env with real JWT_SECRET and Google OAuth credentials
-
-docker compose up --build
 ```
 
-- API: http://localhost:3000/api  
-- Frontend: http://localhost:4200  
+Open `.env` in the root folder and fill in:
 
-Run migrations against the compose Postgres (from host):
+- `JWT_SECRET` (any long random string, 32+ characters)
+- `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` (required for Google sign-in; see step below)
+- `NEXT_PUBLIC_GOOGLE_AUTH_ENABLED=true`
 
-```sh
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/shopping" npx drizzle-kit migrate
+The other defaults in `.env.example` are fine for local development.
+
+**4. Set up Google sign-in**
+
+This was part of the project requirements. You need a Google Cloud OAuth client before login will work fully.
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/apis/credentials) → **Create credentials** → **OAuth client ID** → type **Web application**.
+2. Under **Authorized redirect URIs**, add exactly:
+
+   ```
+   http://localhost:3000/api/auth/google/callback
+   ```
+
+3. Copy the **Client ID** and **Client secret** into `.env`:
+
+   ```env
+   GOOGLE_CLIENT_ID=your-client-id
+   GOOGLE_CLIENT_SECRET=your-client-secret
+   GOOGLE_CALLBACK_URL=http://localhost:3000/api/auth/google/callback
+   NEXT_PUBLIC_GOOGLE_AUTH_ENABLED=true
+   ```
+
+4. On the OAuth consent screen, set the app name to **LUXE** (or similar) so the Google button does not show a random project name.
+
+Email/password register and login also work, but please test **Continue with Google** on http://localhost:4200/login after the servers are running.
+
+**5. Create the database tables**
+
+```bash
+npx drizzle-kit migrate
 ```
 
-## CI
+**6. Start the API** (keep this terminal open)
 
-GitHub Actions (`.github/workflows/ci.yml`) runs lint, migrations, and production builds for `api` and `frontend` on push/PR to `main` or `master`.
+```bash
+npx nx serve api
+```
 
-## Run tasks
+Wait until you see something like: `Application is running on: http://localhost:3000/api`
 
-To run the dev server for your app, use:
+**7. Start the website** (open a second terminal)
 
-```sh
+```bash
 npx nx dev frontend
 ```
 
-To create a production bundle:
+**8. Optional: add sample products**
 
-```sh
-npx nx build frontend
+If the shop looks empty:
+
+```bash
+npx tsx scripts/seed-products.ts
 ```
 
-To see all available targets to run for a project, run:
+Then open http://localhost:4200 in your browser.
 
-```sh
-npx nx show project frontend
+---
+
+## Admin panel
+
+There is no built-in admin login. To try the admin side:
+
+1. Register a normal account on the site (http://localhost:4200/register).
+2. Open the database:
+
+   ```bash
+   docker compose exec postgres psql -U postgres -d shopping
+   ```
+
+3. Make your account an admin (use the email you registered with):
+
+   ```sql
+   UPDATE users SET role = 'ADMIN' WHERE email = 'your.email@example.com';
+   ```
+
+4. Log out, log back in, then go to http://localhost:4200/admin
+
+---
+
+## Main features (for review)
+
+**Customer side**
+- Product catalog with search and budget filter
+- Cart (saved per user when logged in)
+- Checkout and demo payment flow
+- Order tracking with status updates and notifications
+- **Google sign-in** (OAuth) plus email/password register and login
+
+**Admin side**
+- Dashboard with sales overview
+- Product CRUD
+- Order list and detail, update status, confirm payments
+- Live activity feed (last 24 hours + real-time events)
+
+---
+
+## If something goes wrong
+
+**"Port 3000 is already in use"**  
+The API needs port 3000. The website should use 4200 (`npx nx dev frontend`). Do not run the frontend on 3000.
+
+**Login or API calls fail / 403**  
+Check `.env`: `FRONTEND_URL=http://localhost:4200` and `NEXT_PUBLIC_API_URL=http://localhost:3000/api`. Restart both servers after changing `.env`.
+
+**Database errors like "relation does not exist"**  
+Run migrations again: `npx drizzle-kit migrate`
+
+**Google login fails (`invalid_client`, 401, or button missing)**  
+- `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `.env` must be real values from Google Cloud, not empty.
+- Redirect URI in Google Cloud must match `GOOGLE_CALLBACK_URL` exactly.
+- `NEXT_PUBLIC_GOOGLE_AUTH_ENABLED=true` and restart both API and frontend after editing `.env`.
+
+---
+
+## Project structure (quick map)
+
+```
+apps/frontend/   → Next.js shop + admin UI
+apps/api/        → NestJS backend
+libs/database/   → database schema (Drizzle)
+drizzle/         → migration files
+scripts/         → seed script for demo products
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+---
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## Docker (all-in-one, optional)
 
-## Add new projects
+If you prefer running everything in containers:
 
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
-
-Use the plugin's generator to create new projects.
-
-To generate a new application, use:
-
-```sh
-npx nx g @nx/next:app demo
+```bash
+cp .env.example .env
+docker compose up postgres -d
+npx drizzle-kit migrate
+docker compose up --build
 ```
 
-To generate a new library, use:
+Same URLs: shop on :4200, API on :3000.
 
-```sh
-npx nx g @nx/react:lib mylib
-```
+---
 
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
-
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Set up CI!
-
-### Step 1
-
-To connect to Nx Cloud, run the following command:
-
-```sh
-npx nx connect
-```
-
-Connecting to Nx Cloud ensures a [fast and scalable CI](https://nx.dev/ci/intro/why-nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
-
-- [Remote caching](https://nx.dev/ci/features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/ci/features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/ci/features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/ci/features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-### Step 2
-
-Use the following command to configure a CI workflow for your workspace:
-
-```sh
-npx nx g ci-workflow
-```
-
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Install Nx Console
-
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
-
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Useful links
-
-Learn more:
-
-- [Learn more about this workspace setup](https://nx.dev/nx-api/next?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+Thanks for taking the time to review this. If anything in the setup does not work on your machine, let me know and I can help.

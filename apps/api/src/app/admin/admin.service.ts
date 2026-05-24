@@ -227,8 +227,8 @@ export class AdminService {
         id: `user-${u.id}`,
         type: isGoogle ? 'account.google' : 'account.registered',
         message: isGoogle
-          ? `Google sign-up — ${u.name} (${u.email})`
-          : `New account — ${u.name} (${u.email})`,
+          ? `Google sign-up · ${u.name} (${u.email})`
+          : `New account · ${u.name} (${u.email})`,
         href: '/admin',
         at,
       });
@@ -255,7 +255,7 @@ export class AdminService {
       items.push({
         id: `order-placed-${o.id}`,
         type: 'order.placed',
-        message: `New order #${o.id} — ${o.userName ?? 'Customer'} · $${Number(o.totalPrice).toFixed(2)}`,
+        message: `New order #${o.id} · ${o.userName ?? 'Customer'} · $${Number(o.totalPrice).toFixed(2)}`,
         href: `/admin/orders/${o.id}`,
         at,
       });
@@ -289,7 +289,7 @@ export class AdminService {
         items.push({
           id: `event-${ev.id}`,
           type: 'order.payment_submitted',
-          message: `Payment to confirm — Order #${ev.orderId} · ${ev.userName ?? 'Customer'} · $${Number(ev.totalPrice).toFixed(2)}`,
+          message: `Payment to confirm · Order #${ev.orderId} · ${ev.userName ?? 'Customer'} · $${Number(ev.totalPrice).toFixed(2)}`,
           href: `/admin/orders/${ev.orderId}`,
           at,
         });
@@ -297,7 +297,7 @@ export class AdminService {
         items.push({
           id: `event-${ev.id}`,
           type: 'order.status_updated',
-          message: `Payment confirmed — Order #${ev.orderId} · ${ev.userName ?? 'Customer'}`,
+          message: `Payment confirmed · Order #${ev.orderId} · ${ev.userName ?? 'Customer'}`,
           href: `/admin/orders/${ev.orderId}`,
           at,
         });

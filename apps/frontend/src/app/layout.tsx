@@ -26,7 +26,7 @@ const fontScript = Great_Vibes({
 });
 
 export const metadata = {
-  title: 'LUXE — Natural Beauty Collection',
+  title: 'LUXE | Natural Beauty Collection',
   description: 'Premium fashion & lifestyle. Dark luxe editorial storefront.',
 };
 

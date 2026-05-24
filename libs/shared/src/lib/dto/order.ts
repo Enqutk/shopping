@@ -9,7 +9,7 @@ export type OrderStatus =
 
 /** Shown to customers after admin confirms payment */
 export const ORDER_DELIVERY_ESTIMATE =
-  'Your order will be prepared and delivered within 7–15 business days.';
+  'Your order will be prepared and delivered within 7-15 business days.';
 
 export interface CheckoutItemInput {
   productId: number;

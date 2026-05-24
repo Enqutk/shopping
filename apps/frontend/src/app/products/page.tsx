@@ -202,7 +202,7 @@ function ProductsContent() {
                 <span className="text-femme-champagne/80">
                   {' '}
                   · ${minPrice || '0'}
-                  {maxPrice ? ` – $${maxPrice}` : '+'}
+                  {maxPrice ? ` - $${maxPrice}` : '+'}
                 </span>
               )}
             </p>

@@ -2,7 +2,7 @@ const ROLES = [
   {
     title: 'Delivery partners',
     tagline: 'Hard workers on the road',
-    body: 'Riders who show up rain or shine — we see you. Partner registration opens soon.',
+    body: 'Riders who show up rain or shine: we see you. Partner registration opens soon.',
     icon: (
       <path
         strokeLinecap="round"
@@ -15,7 +15,7 @@ const ROLES = [
   {
     title: 'Shop owners',
     tagline: 'Makers & curators',
-    body: 'Boutiques, studios, and local brands — bring your collection to LUXE. Applications opening soon.',
+    body: 'Boutiques, studios, and local brands: bring your collection to LUXE. Applications opening soon.',
     icon: (
       <path
         strokeLinecap="round"
@@ -46,7 +46,7 @@ export default function PartnersComingSoonSection() {
             We&apos;ll collaborate with you
           </h2>
           <p className="text-sm sm:text-base text-arctic-light mt-4 max-w-xl mx-auto normal-case tracking-normal leading-relaxed">
-            To every hardworking delivery partner and ambitious shop owner —{' '}
+            To every hardworking delivery partner and ambitious shop owner:{' '}
             <span className="text-femme-champagne">watch for us</span>. We&apos;re building something
             worth the wait, and we want you on the journey.
           </p>

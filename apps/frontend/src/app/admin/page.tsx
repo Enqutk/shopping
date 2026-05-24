@@ -90,7 +90,7 @@ export default function AdminDashboardPage() {
     <div className="space-y-8">
       <div>
         <h1 className={adminUi.pageTitle}>Dashboard</h1>
-        <p className={adminUi.pageSub}>Store overview — products, orders, and revenue at a glance.</p>
+        <p className={adminUi.pageSub}>Store overview: products, orders, and revenue at a glance.</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">

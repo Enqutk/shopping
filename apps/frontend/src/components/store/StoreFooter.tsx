@@ -78,7 +78,7 @@ export default function StoreFooter() {
           </div>
         </div>
         <p className="text-[10px] uppercase tracking-widest text-arctic-light/60 mt-12 text-center">
-          © {new Date().getFullYear()} LUXE — Premium fashion &amp; lifestyle
+          © {new Date().getFullYear()} LUXE · Premium fashion &amp; lifestyle
         </p>
       </div>
     </footer>

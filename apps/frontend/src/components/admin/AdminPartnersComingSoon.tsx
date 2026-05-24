@@ -23,7 +23,7 @@ export default function AdminPartnersComingSoon() {
       <div>
         <h2 className={adminUi.sectionTitle}>Partner onboarding</h2>
         <p className={`text-xs ${adminUi.muted} mt-1 normal-case tracking-normal`}>
-          Delivery &amp; shop owner registration — launching soon.
+          Delivery &amp; shop owner registration: launching soon.
         </p>
       </div>
 

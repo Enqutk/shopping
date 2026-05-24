@@ -19,7 +19,7 @@ const nextConfig = {
     ],
   },
   async rewrites() {
-    // Nest API (must not be the same port as this Next dev server — use 4200 for frontend)
+    // Nest API (must not be the same port as this Next dev server; use 4200 for frontend)
     const apiOrigin = (
       process.env.API_PROXY_URL || 'http://localhost:3000'
     ).replace(/\/$/, '');

@@ -83,7 +83,7 @@ export class AuthController {
     await this.attachSession(res, user);
     this.realtime.emitAdminActivity({
       type: 'account.registered',
-      message: `New account — ${user.name} (${user.email})`,
+      message: `New account · ${user.name} (${user.email})`,
       href: '/admin',
       meta: { userId: user.id, userName: user.name, userEmail: user.email },
     });
@@ -100,7 +100,7 @@ export class AuthController {
   @Get('google')
   @UseGuards(GoogleOAuthConfiguredGuard, AuthGuard('google'))
   googleAuth(@Req() req: { url?: string }) {
-    this.logger.log(`GET ${req.url ?? '/auth/google'} — handing off to Passport (redirect to Google)`);
+    this.logger.log(`GET ${req.url ?? '/auth/google'}: handing off to Passport (redirect to Google)`);
   }
 
   @Get('google/callback')
@@ -109,12 +109,12 @@ export class AuthController {
     @Req() req: { user: AuthUser & { isNewAccount?: boolean }; url?: string },
     @Res() res: Response,
   ) {
-    this.logger.log(`GET ${req.url ?? '/auth/google/callback'} — user ${req.user.email}`);
+    this.logger.log(`GET ${req.url ?? '/auth/google/callback'}: user ${req.user.email}`);
     await this.attachSession(res, req.user);
     if (req.user.isNewAccount) {
       this.realtime.emitAdminActivity({
         type: 'account.google',
-        message: `Google sign-up — ${req.user.name} (${req.user.email})`,
+        message: `Google sign-up · ${req.user.name} (${req.user.email})`,
         href: '/admin',
         meta: {
           userId: req.user.id,

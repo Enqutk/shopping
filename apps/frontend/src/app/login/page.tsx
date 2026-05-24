@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import AuthForm from '../../components/auth/AuthForm';
 
 export const metadata = {
-  title: 'Sign in — LUXE',
+  title: 'Sign in | LUXE',
   description: 'Sign in to your LUXE account',
 };
 

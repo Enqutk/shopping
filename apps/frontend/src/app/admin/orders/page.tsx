@@ -83,7 +83,7 @@ export default function AdminOrdersPage() {
         <div>
           <h1 className={adminUi.pageTitle}>Orders</h1>
           <p className={adminUi.pageSub}>
-            Update status — customers get a live notification.
+            Update status: customers get a live notification.
           </p>
         </div>
         {data && (
@@ -217,7 +217,7 @@ export default function AdminOrdersPage() {
                       <p className="text-[10px] uppercase tracking-wider text-arctic-light mb-0.5">
                         Customer
                       </p>
-                      <p className="text-sm text-arctic-deep truncate">{o.userName || '—'}</p>
+                      <p className="text-sm text-arctic-deep truncate">{o.userName || 'N/A'}</p>
                       <p className="text-xs text-arctic-light truncate">{o.userEmail}</p>
                     </div>
                     <div>

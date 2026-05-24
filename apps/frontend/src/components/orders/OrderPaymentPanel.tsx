@@ -31,7 +31,7 @@ export default function OrderPaymentPanel({ orderId, totalPrice, onPaid }: Props
         return;
       }
       if (res.status === 404) {
-        setError('Payment service unavailable — restart the API server and try again.');
+        setError('Payment service unavailable. Restart the API server and try again.');
         return;
       }
       if (!res.ok) {
@@ -43,7 +43,7 @@ export default function OrderPaymentPanel({ orderId, totalPrice, onPaid }: Props
         return;
       }
       const data = (await res.json()) as OrderDetail;
-      toastSuccess('Payment submitted — awaiting confirmation');
+      toastSuccess('Payment submitted; awaiting confirmation');
       onPaid(data);
     } catch {
       setError('Payment failed. Please try again.');
@@ -60,7 +60,7 @@ export default function OrderPaymentPanel({ orderId, totalPrice, onPaid }: Props
         Payment required
       </h2>
       <p className="text-xs text-arctic-light mb-4 normal-case">
-        Complete payment to confirm your order. Demo checkout — no real card is charged.
+        Complete payment to confirm your order. Demo checkout: no real card is charged.
       </p>
 
       <form onSubmit={handlePay} className="space-y-3">

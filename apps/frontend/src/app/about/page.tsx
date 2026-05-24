@@ -5,7 +5,7 @@ import StoreScene from '../../components/immersive/StoreScene';
 import PartnersComingSoonSection from '../../components/about/PartnersComingSoonSection';
 
 export const metadata = {
-  title: 'About — LUXE',
+  title: 'About | LUXE',
   description: 'Our story and upcoming partnerships with delivery partners and shop owners.',
 };
 
@@ -22,7 +22,7 @@ export default function AboutPage() {
             </p>
             <h1 className="section-heading text-3xl sm:text-4xl lg:text-5xl">LUXE Natural Beauty</h1>
             <p className="text-sm sm:text-base text-arctic-light mt-6 max-w-2xl mx-auto normal-case tracking-normal leading-relaxed">
-              We curate premium fashion and lifestyle pieces with an editorial eye — dark luxe,
+              We curate premium fashion and lifestyle pieces with an editorial eye: dark luxe,
               timeless essentials, and a shopping experience that feels personal from cart to
               doorstep.
             </p>

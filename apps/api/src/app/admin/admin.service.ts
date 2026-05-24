@@ -1,5 +1,14 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { DATABASE_CONNECTION, orderItems, orders, products, users } from '@shopping/database';
+import {
+  DATABASE_CONNECTION,
+  orderItems,
+  orderStatusEvents,
+  orders,
+  products,
+  users,
+} from '@shopping/database';
+import type { AdminActivityDto } from '@shopping/shared';
+import { getOrderStatusLabel } from '@shopping/shared';
 import { attachTimelineToOrder } from '../orders/order-timeline.helper';
 import { and, desc, eq, gte, ilike, lte, or, sql, type SQL } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
@@ -86,6 +95,7 @@ export class AdminService {
 
     const ordersByStatus = {
       PENDING: 0,
+      AWAITING_CONFIRMATION: 0,
       PAID: 0,
       SHIPPED: 0,
       CANCELLED: 0,
@@ -121,7 +131,12 @@ export class AdminService {
       conditions.push(
         eq(
           orders.status,
-          query.status as 'PENDING' | 'PAID' | 'SHIPPED' | 'CANCELLED',
+          query.status as
+            | 'PENDING'
+            | 'AWAITING_CONFIRMATION'
+            | 'PAID'
+            | 'SHIPPED'
+            | 'CANCELLED',
         ),
       );
     }
@@ -185,6 +200,122 @@ export class AdminService {
     };
   }
 
+  async getActivityFeed(hours = 24): Promise<AdminActivityDto[]> {
+    const since = new Date(Date.now() - hours * 60 * 60 * 1000);
+    const items: AdminActivityDto[] = [];
+
+    const newUsers = await this.db
+      .select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        provider: users.provider,
+        createdAt: users.createdAt,
+      })
+      .from(users)
+      .where(gte(users.createdAt, since))
+      .orderBy(desc(users.createdAt))
+      .limit(20);
+
+    for (const u of newUsers) {
+      const at =
+        u.createdAt instanceof Date
+          ? u.createdAt.toISOString()
+          : String(u.createdAt);
+      const isGoogle = u.provider === 'google';
+      items.push({
+        id: `user-${u.id}`,
+        type: isGoogle ? 'account.google' : 'account.registered',
+        message: isGoogle
+          ? `Google sign-up — ${u.name} (${u.email})`
+          : `New account — ${u.name} (${u.email})`,
+        href: '/admin',
+        at,
+      });
+    }
+
+    const newOrders = await this.db
+      .select({
+        id: orders.id,
+        totalPrice: orders.totalPrice,
+        createdAt: orders.createdAt,
+        userName: users.name,
+      })
+      .from(orders)
+      .leftJoin(users, eq(users.id, orders.userId))
+      .where(gte(orders.createdAt, since))
+      .orderBy(desc(orders.createdAt))
+      .limit(30);
+
+    for (const o of newOrders) {
+      const at =
+        o.createdAt instanceof Date
+          ? o.createdAt.toISOString()
+          : String(o.createdAt);
+      items.push({
+        id: `order-placed-${o.id}`,
+        type: 'order.placed',
+        message: `New order #${o.id} — ${o.userName ?? 'Customer'} · $${Number(o.totalPrice).toFixed(2)}`,
+        href: `/admin/orders/${o.id}`,
+        at,
+      });
+    }
+
+    const events = await this.db
+      .select({
+        id: orderStatusEvents.id,
+        orderId: orderStatusEvents.orderId,
+        status: orderStatusEvents.status,
+        message: orderStatusEvents.message,
+        createdAt: orderStatusEvents.createdAt,
+        userName: users.name,
+        totalPrice: orders.totalPrice,
+      })
+      .from(orderStatusEvents)
+      .innerJoin(orders, eq(orders.id, orderStatusEvents.orderId))
+      .leftJoin(users, eq(users.id, orders.userId))
+      .where(gte(orderStatusEvents.createdAt, since))
+      .orderBy(desc(orderStatusEvents.createdAt))
+      .limit(40);
+
+    for (const ev of events) {
+      const at =
+        ev.createdAt instanceof Date
+          ? ev.createdAt.toISOString()
+          : String(ev.createdAt);
+      if (ev.status === 'PENDING') continue;
+
+      if (ev.status === 'AWAITING_CONFIRMATION') {
+        items.push({
+          id: `event-${ev.id}`,
+          type: 'order.payment_submitted',
+          message: `Payment to confirm — Order #${ev.orderId} · ${ev.userName ?? 'Customer'} · $${Number(ev.totalPrice).toFixed(2)}`,
+          href: `/admin/orders/${ev.orderId}`,
+          at,
+        });
+      } else if (ev.status === 'PAID') {
+        items.push({
+          id: `event-${ev.id}`,
+          type: 'order.status_updated',
+          message: `Payment confirmed — Order #${ev.orderId} · ${ev.userName ?? 'Customer'}`,
+          href: `/admin/orders/${ev.orderId}`,
+          at,
+        });
+      } else {
+        items.push({
+          id: `event-${ev.id}`,
+          type: 'order.status_updated',
+          message: `Order #${ev.orderId} → ${getOrderStatusLabel(ev.status)} (${ev.userName ?? 'customer'})`,
+          href: `/admin/orders/${ev.orderId}`,
+          at,
+        });
+      }
+    }
+
+    items.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
+    return items.slice(0, 50);
+  }
+
   async findOrderById(orderId: number) {
     const orderRow = await this.db
       .select({
@@ -212,6 +343,8 @@ export class AdminService {
         productId: orderItems.productId,
         quantity: orderItems.quantity,
         price: orderItems.price,
+        color: orderItems.color,
+        size: orderItems.size,
         productName: products.name,
         productImageUrl: products.imageUrl,
       })
@@ -231,6 +364,8 @@ export class AdminService {
         productId: row.productId,
         quantity: row.quantity,
         price: String(row.price),
+        color: row.color ?? null,
+        size: row.size ?? null,
         productName: row.productName,
         productImageUrl: row.productImageUrl,
       })),

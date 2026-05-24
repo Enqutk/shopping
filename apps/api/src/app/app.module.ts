@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { ProductsModule } from './products/products.module';
 import { OrdersModule } from './orders/orders.module';
 import { AdminModule } from './admin/admin.module';
+import { UploadsModule } from './uploads/uploads.module';
 import { DatabaseModule } from '@shopping/database';
 
 @Module({
@@ -34,6 +35,7 @@ import { DatabaseModule } from '@shopping/database';
     ProductsModule,
     OrdersModule,
     AdminModule,
+    UploadsModule,
   ],
   controllers: [],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

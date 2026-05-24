@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { PRODUCT_CATEGORIES } from '@shopping/shared';
 import { useCartStore } from '../store/cart.store';
 import { useAuthStore } from '../store/auth.store';
@@ -36,6 +37,28 @@ function SearchIcon() {
   );
 }
 
+function MenuIcon({ open }: { open: boolean }) {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      {open ? (
+        <path
+          d="M6 6l12 12M18 6L6 18"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+      ) : (
+        <path
+          d="M4 7h16M4 12h16M4 17h16"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+      )}
+    </svg>
+  );
+}
+
 export default function StoreHeader({ transparent = false }: { transparent?: boolean }) {
   const items = useCartStore((s) => s.items);
   const cartCount = items.reduce((n, i) => n + i.quantity, 0);
@@ -43,6 +66,11 @@ export default function StoreHeader({ transparent = false }: { transparent?: boo
   const authLoading = useAuthStore((s) => s.loading);
   const pathname = usePathname();
   const onHome = pathname === '/';
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
 
   const headerShell =
     transparent && onHome
@@ -75,7 +103,18 @@ export default function StoreHeader({ transparent = false }: { transparent?: boo
             ))}
         </nav>
 
-        <div className="md:hidden" />
+        <div className="flex md:hidden items-center">
+          <button
+            type="button"
+            className="femme-icon-btn p-1"
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={menuOpen}
+            aria-controls="mobile-nav"
+            onClick={() => setMenuOpen((o) => !o)}
+          >
+            <MenuIcon open={menuOpen} />
+          </button>
+        </div>
 
         <Link
           href="/"
@@ -155,6 +194,43 @@ export default function StoreHeader({ transparent = false }: { transparent?: boo
           <UserDropdown />
         </div>
       </div>
+
+      {menuOpen && (
+        <nav
+          id="mobile-nav"
+          className="md:hidden border-t border-white/10 bg-femme-black/98 backdrop-blur-md px-4 py-4"
+          aria-label="Mobile"
+        >
+          <ul className="flex flex-col gap-1">
+            {LEFT_NAV.map(({ href, label }) => (
+              <li key={href}>
+                <Link
+                  href={href}
+                  className={`block py-3 px-2 text-[11px] font-bold uppercase tracking-[0.15em] ${
+                    pathname === href
+                      ? 'text-femme-champagne'
+                      : 'text-white/80 hover:text-femme-champagne'
+                  }`}
+                >
+                  {label}
+                </Link>
+              </li>
+            ))}
+            {PRODUCT_CATEGORIES.filter((c) => c.value)
+              .slice(0, 4)
+              .map((c) => (
+                <li key={c.value}>
+                  <Link
+                    href={`/products?category=${c.value}`}
+                    className="block py-2.5 px-2 text-[11px] font-bold uppercase tracking-[0.15em] text-white/70 hover:text-femme-champagne"
+                  >
+                    {c.label}
+                  </Link>
+                </li>
+              ))}
+          </ul>
+        </nav>
+      )}
     </header>
   );
 }

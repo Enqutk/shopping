@@ -1,4 +1,6 @@
-import { pgTable, serial, text, varchar, timestamp, pgEnum, integer, boolean, numeric } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text, varchar, timestamp, pgEnum, integer, boolean, numeric, jsonb } from 'drizzle-orm/pg-core';
+
+export type ProductColorJson = { name: string; hex: string };
 import { relations } from 'drizzle-orm';
 
 export const roleEnum = pgEnum('role', ['USER', 'ADMIN']);
@@ -31,6 +33,8 @@ export const products = pgTable('products', {
   imageUrl: text('image_url'),
   stock: integer('stock').default(0).notNull(),
   category: varchar('category', { length: 100 }),
+  availableColors: jsonb('available_colors').$type<ProductColorJson[] | null>(),
+  availableSizes: jsonb('available_sizes').$type<string[] | null>(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 

@@ -1,3 +1,7 @@
+import type { ProductColorOption } from '../product-options.js';
+
+export type { ProductColorOption };
+
 export interface Product {
   id: number;
   name: string;
@@ -6,6 +10,8 @@ export interface Product {
   imageUrl?: string | null;
   stock: number;
   category?: string | null;
+  availableColors?: ProductColorOption[] | null;
+  availableSizes?: string[] | null;
   createdAt: Date;
 }
 
@@ -23,4 +29,6 @@ export interface CreateProductInput {
   imageUrl?: string;
   stock?: number;
   category?: string;
+  availableColors?: ProductColorOption[] | null;
+  availableSizes?: string[] | null;
 }

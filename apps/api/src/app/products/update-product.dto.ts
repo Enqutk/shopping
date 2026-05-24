@@ -1,7 +1,8 @@
-import { IsString, IsNumber, IsPositive, IsUrl, IsOptional, IsInt, Min, MaxLength } from 'class-validator';
+import { IsString, IsNumber, IsPositive, IsOptional, IsInt, Min, MaxLength } from 'class-validator';
 import { Type } from 'class-transformer';
+import { ProductVariantFieldsDto } from './product-variant.dto';
 
-export class UpdateProductDto {
+export class UpdateProductDto extends ProductVariantFieldsDto {
   @IsOptional()
   @IsString()
   @MaxLength(256)
@@ -18,7 +19,8 @@ export class UpdateProductDto {
   price?: number;
 
   @IsOptional()
-  @IsUrl()
+  @IsString()
+  @MaxLength(2048)
   imageUrl?: string;
 
   @IsOptional()

@@ -27,7 +27,13 @@ export default function ProductDetailPage() {
   const [tab, setTab] = useState<'description' | 'reviews'>('description');
 
   const options = useMemo(
-    () => (product ? getProductOptions(product.category, product.id) : null),
+    () =>
+      product
+        ? getProductOptions(product.category, product.id, {
+            availableColors: product.availableColors,
+            availableSizes: product.availableSizes,
+          })
+        : null,
     [product],
   );
 
@@ -52,9 +58,13 @@ export default function ProductDetailPage() {
 
   useEffect(() => {
     if (!options) return;
-    setColor(options.defaultColor);
-    if (options.showSize && options.defaultSize) {
-      setSize(options.defaultSize);
+    if (options.colors.length > 0) {
+      setColor(options.defaultColor || options.colors[0].name);
+    } else {
+      setColor('');
+    }
+    if (options.showSize && options.sizes.length > 0) {
+      setSize(options.defaultSize ?? options.sizes[0]);
     } else {
       setSize('');
     }
@@ -162,6 +172,7 @@ export default function ProductDetailPage() {
                 ${Number(product.price).toFixed(2)}
               </p>
 
+              {options.colors.length > 0 && (
               <div className="mt-8">
                 <p className="text-xs font-bold uppercase tracking-widest text-arctic-deep/60 mb-3">
                   Color: {color}
@@ -185,6 +196,7 @@ export default function ProductDetailPage() {
                   ))}
                 </div>
               </div>
+              )}
 
               {options.showSize && options.sizes.length > 0 && (
                 <div className="mt-8">

@@ -77,7 +77,8 @@ function normalizeCategorySlug(category?: string | null): string {
   return lower;
 }
 
-export function getProductOptions(
+/** Category-based defaults (used when admin has not set per-product options). */
+export function getCategoryProductOptions(
   category?: string | null,
   productId?: number,
 ): ProductOptionsConfig & { defaultColor: string; defaultSize?: string } {
@@ -95,6 +96,36 @@ export function getProductOptions(
     ...config,
     defaultColor: config.colors[colorIdx]?.name ?? config.colors[0].name,
     defaultSize: config.sizes.length ? config.sizes[sizeIdx] : undefined,
+  };
+}
+
+/** Resolved options for storefront (admin-defined or category fallback). */
+export function getProductOptions(
+  category?: string | null,
+  productId?: number,
+  stored?: {
+    availableColors?: ProductColorOption[] | null;
+    availableSizes?: string[] | null;
+  },
+): ProductOptionsConfig & { defaultColor: string; defaultSize?: string } {
+  const defaults = getCategoryProductOptions(category, productId);
+  const colors =
+    stored?.availableColors != null && stored.availableColors.length > 0
+      ? stored.availableColors
+      : defaults.colors;
+  const sizes =
+    stored?.availableSizes != null ? stored.availableSizes : defaults.sizes;
+  const showSize = sizes.length > 0;
+
+  const colorIdx = productId != null ? productId % colors.length : 0;
+  const sizeIdx = productId != null && sizes.length ? productId % sizes.length : 0;
+
+  return {
+    colors,
+    sizes,
+    showSize,
+    defaultColor: colors[colorIdx]?.name ?? colors[0]?.name ?? '',
+    defaultSize: sizes.length ? sizes[sizeIdx] : undefined,
   };
 }
 

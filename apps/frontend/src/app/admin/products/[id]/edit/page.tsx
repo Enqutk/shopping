@@ -5,6 +5,9 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '../../../../../lib/api-axios';
 import CategorySelect from '../../../../../components/admin/CategorySelect';
+import ProductVariantEditor from '../../../../../components/admin/ProductVariantEditor';
+import ProductImageField from '../../../../../components/admin/ProductImageField';
+import type { ProductColorOption } from '@shopping/shared';
 
 export default function EditProductPage() {
   const router = useRouter();
@@ -16,7 +19,9 @@ export default function EditProductPage() {
   const [imageUrl, setImageUrl] = useState('');
   const [stock, setStock] = useState('0');
   const [category, setCategory] = useState('');
-  
+  const [colors, setColors] = useState<ProductColorOption[]>([]);
+  const [sizes, setSizes] = useState<string[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,6 +38,12 @@ export default function EditProductPage() {
         setImageUrl(product.imageUrl || '');
         setStock(String(product.stock));
         setCategory(product.category || '');
+        setColors(
+          Array.isArray(product.availableColors) ? product.availableColors : [],
+        );
+        setSizes(
+          Array.isArray(product.availableSizes) ? product.availableSizes : [],
+        );
       } catch (err: any) {
         console.error('Failed to fetch product for editing', err);
         if (err.response?.status === 404) {
@@ -73,6 +84,8 @@ export default function EditProductPage() {
           imageUrl: imageUrl.trim() || undefined,
           stock: parsedStock,
           category: category.trim() || undefined,
+          availableColors: colors.length > 0 ? colors : null,
+          availableSizes: sizes.length > 0 ? sizes : null,
         });
       router.push('/admin/products');
     } catch (err: any) {
@@ -178,27 +191,28 @@ export default function EditProductPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-semibold text-arctic-deep mb-2">Category</label>
-            <CategorySelect
-              value={category}
-              onChange={setCategory}
-              className="w-full auth-input"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-arctic-deep mb-2">Image URL</label>
-            <input
-              type="url"
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              placeholder="https://images.unsplash.com/..."
-              className="w-full auth-input"
-            />
-          </div>
+        <div>
+          <label className="block text-sm font-semibold text-arctic-deep mb-2">Category</label>
+          <CategorySelect
+            value={category}
+            onChange={setCategory}
+            className="w-full auth-input max-w-md"
+          />
         </div>
+
+        <ProductImageField
+          value={imageUrl}
+          onChange={setImageUrl}
+          disabled={submitting || loading}
+        />
+
+        <ProductVariantEditor
+          category={category}
+          colors={colors}
+          sizes={sizes}
+          onColorsChange={setColors}
+          onSizesChange={setSizes}
+        />
 
         <div>
           <label className="block text-sm font-semibold text-arctic-deep mb-2">Description</label>

@@ -3,17 +3,16 @@
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import axios from 'axios';
+import { api } from '../../../../lib/api-axios';
 import OrderTimeline from '../../../../components/orders/OrderTimeline';
 import type { OrderDetail, OrderStatus } from '@shopping/shared';
 import {
   buildOrderTimeline,
+  formatOrderLineVariant,
   getOrderStatusLabel,
   ORDER_STATUS_OPTIONS,
 } from '@shopping/shared';
 import { ORDER_STATUS_BADGE } from '../../../../lib/order-status-ui';
-
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
 
 type AdminOrderDetail = OrderDetail & {
   userId: number;
@@ -32,9 +31,7 @@ export default function AdminOrderDetailPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await axios.get<AdminOrderDetail>(`${API}/admin/orders/${params.id}`, {
-        withCredentials: true,
-      });
+      const res = await api.get<AdminOrderDetail>(`/admin/orders/${params.id}`);
       setOrder(res.data);
     } catch {
       setOrder(null);
@@ -51,14 +48,23 @@ export default function AdminOrderDetailPage() {
     if (!order) return;
     setUpdating(true);
     try {
-      await axios.patch(
-        `${API}/orders/${order.id}/status`,
-        { status },
-        { withCredentials: true },
-      );
+      await api.patch(`/orders/${order.id}/status`, { status });
       await load();
     } catch {
       alert('Failed to update status');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const confirmPayment = async () => {
+    if (!order) return;
+    setUpdating(true);
+    try {
+      await api.post(`/orders/${order.id}/confirm-payment`);
+      await load();
+    } catch {
+      alert('Failed to confirm payment');
     } finally {
       setUpdating(false);
     }
@@ -117,6 +123,16 @@ export default function AdminOrderDetailPage() {
           <p className="text-xl font-semibold text-white text-right">
             ${Number(order.totalPrice).toFixed(2)}
           </p>
+          {order.status === 'AWAITING_CONFIRMATION' && (
+            <button
+              type="button"
+              disabled={updating}
+              onClick={() => void confirmPayment()}
+              className="w-full py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase tracking-wide disabled:opacity-50"
+            >
+              {updating ? 'Confirming…' : 'Confirm payment'}
+            </button>
+          )}
           <select
             value={order.status}
             disabled={updating}
@@ -138,7 +154,9 @@ export default function AdminOrderDetailPage() {
             Line items ({order.itemCount})
           </div>
           <ul className="divide-y divide-slate-800">
-            {order.items.map((line) => (
+            {order.items.map((line) => {
+              const variant = formatOrderLineVariant(line);
+              return (
               <li key={line.id} className="flex gap-3 p-4">
                 <div className="w-12 h-12 shrink-0 bg-slate-800 overflow-hidden rounded">
                   {line.productImageUrl && (
@@ -153,6 +171,11 @@ export default function AdminOrderDetailPage() {
                   >
                     {line.productName}
                   </button>
+                  {variant ? (
+                    <p className="text-xs text-indigo-300/90 mt-1 font-medium">{variant}</p>
+                  ) : (
+                    <p className="text-xs text-slate-600 mt-1 italic">No color/size recorded</p>
+                  )}
                   <p className="text-xs text-slate-500 mt-0.5">
                     Qty {line.quantity} · ${Number(line.price).toFixed(2)} each
                   </p>
@@ -161,7 +184,8 @@ export default function AdminOrderDetailPage() {
                   ${(Number(line.price) * line.quantity).toFixed(2)}
                 </p>
               </li>
-            ))}
+            );
+            })}
           </ul>
         </div>
 

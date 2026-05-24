@@ -3,10 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import axios from 'axios';
+import { api } from '../../../../lib/api-axios';
 import CategorySelect from '../../../../components/admin/CategorySelect';
-
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
 
 export default function NewProductPage() {
   const router = useRouter();
@@ -38,18 +36,14 @@ export default function NewProductPage() {
 
     setSubmitting(true);
     try {
-      await axios.post(
-        `${API}/products`,
-        {
+      await api.post('/products', {
           name,
           description: description || undefined,
           price: parsedPrice,
           imageUrl: imageUrl || undefined,
           stock: parsedStock,
           category: category || undefined,
-        },
-        { withCredentials: true }
-      );
+        });
       router.push('/admin/products');
     } catch (err: any) {
       console.error('Failed to create product', err);

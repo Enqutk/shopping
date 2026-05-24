@@ -60,15 +60,15 @@ export default function NewProductPage() {
       <div className="mb-8">
         <Link
           href="/admin/products"
-          className="text-sm text-slate-400 hover:text-white flex items-center space-x-1 mb-3 transition-colors"
+          className="text-sm text-arctic-light hover:text-femme-champagne flex items-center space-x-1 mb-3 transition-colors"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
           <span>Back to Inventory</span>
         </Link>
-        <h1 className="text-3xl font-extrabold text-white">Create New Product</h1>
-        <p className="text-slate-400 text-sm mt-1">Publish a new item to your online storefront</p>
+        <h1 className="text-3xl font-extrabold text-arctic-deep">Create New Product</h1>
+        <p className="text-arctic-light text-sm mt-1">Publish a new item to your online storefront</p>
       </div>
 
       {/* Error Banner */}
@@ -85,9 +85,9 @@ export default function NewProductPage() {
       )}
 
       {/* Form Card */}
-      <form onSubmit={handleSubmit} className="bg-slate-900 border border-slate-800 rounded-2xl p-8 space-y-6">
+      <form onSubmit={handleSubmit} className="arctic-card border border-white/10 bg-femme-surface/90 rounded-2xl p-8 space-y-6">
         <div>
-          <label className="block text-sm font-semibold text-slate-200 mb-2">Product Name *</label>
+          <label className="block text-sm font-semibold text-arctic-deep mb-2">Product Name *</label>
           <input
             type="text"
             required
@@ -95,13 +95,13 @@ export default function NewProductPage() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Air Max Alpha"
-            className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-600 outline-none transition-colors"
+            className="w-full auth-input bg-femme-black border border-white/10 focus:border-femme-champagne focus:ring-1 focus:ring-femme-champagne rounded-xl px-4 py-3 text-sm text-arctic-deep placeholder-slate-600 outline-none transition-colors"
           />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-semibold text-slate-200 mb-2">Price ($) *</label>
+            <label className="block text-sm font-semibold text-arctic-deep mb-2">Price ($) *</label>
             <input
               type="number"
               step="0.01"
@@ -110,67 +110,67 @@ export default function NewProductPage() {
               value={price}
               onChange={(e) => setPrice(e.target.value)}
               placeholder="49.99"
-              className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-600 outline-none transition-colors"
+              className="w-full auth-input bg-femme-black border border-white/10 focus:border-femme-champagne focus:ring-1 focus:ring-femme-champagne rounded-xl px-4 py-3 text-sm text-arctic-deep placeholder-slate-600 outline-none transition-colors"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-200 mb-2">Stock Quantity *</label>
+            <label className="block text-sm font-semibold text-arctic-deep mb-2">Stock Quantity *</label>
             <input
               type="number"
               min="0"
               required
               value={stock}
               onChange={(e) => setStock(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl px-4 py-3 text-sm text-slate-100 outline-none transition-colors"
+              className="w-full auth-input bg-femme-black border border-white/10 focus:border-femme-champagne focus:ring-1 focus:ring-femme-champagne rounded-xl px-4 py-3 text-sm text-arctic-deep outline-none transition-colors"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-semibold text-slate-200 mb-2">Category</label>
+            <label className="block text-sm font-semibold text-arctic-deep mb-2">Category</label>
             <CategorySelect
               value={category}
               onChange={setCategory}
-              className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl px-4 py-3 text-sm text-slate-300 outline-none transition-colors"
+              className="w-full auth-input bg-femme-black border border-white/10 focus:border-femme-champagne focus:ring-1 focus:ring-femme-champagne rounded-xl px-4 py-3 text-sm text-arctic-deep outline-none transition-colors"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-200 mb-2">Image URL</label>
+            <label className="block text-sm font-semibold text-arctic-deep mb-2">Image URL</label>
             <input
               type="url"
               value={imageUrl}
               onChange={(e) => setImageUrl(e.target.value)}
               placeholder="https://images.unsplash.com/..."
-              className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-600 outline-none transition-colors"
+              className="w-full auth-input bg-femme-black border border-white/10 focus:border-femme-champagne focus:ring-1 focus:ring-femme-champagne rounded-xl px-4 py-3 text-sm text-arctic-deep placeholder-slate-600 outline-none transition-colors"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-slate-200 mb-2">Description</label>
+          <label className="block text-sm font-semibold text-arctic-deep mb-2">Description</label>
           <textarea
             rows={4}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Provide a detailed description of the product features, sizing, materials..."
-            className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-600 outline-none transition-colors resize-none"
+            className="w-full auth-input bg-femme-black border border-white/10 focus:border-femme-champagne focus:ring-1 focus:ring-femme-champagne rounded-xl px-4 py-3 text-sm text-arctic-deep placeholder-slate-600 outline-none transition-colors resize-none"
           />
         </div>
 
-        <div className="flex justify-end space-x-4 border-t border-slate-800 pt-6">
+        <div className="flex justify-end space-x-4 border-t border-white/10 pt-6">
           <Link
             href="/admin/products"
-            className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl transition-colors text-sm"
+            className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-arctic-deep font-semibold rounded-xl transition-colors text-sm"
           >
             Cancel
           </Link>
           <button
             type="submit"
             disabled={submitting}
-            className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-6 py-3 rounded-xl transition-all hover:scale-[1.01] flex items-center space-x-2 shadow-lg shadow-indigo-600/10 disabled:opacity-40 disabled:scale-100"
+            className="bg-femme-champagne hover:bg-femme-champagne-light text-arctic-deep font-semibold px-6 py-3 rounded-xl transition-all hover:scale-[1.01] flex items-center space-x-2 shadow-lg shadow-indigo-600/10 disabled:opacity-40 disabled:scale-100"
           >
             {submitting ? (
               <>

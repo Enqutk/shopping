@@ -23,6 +23,11 @@ export class AdminController {
     return this.adminService.getStats();
   }
 
+  @Get('activity')
+  getActivity() {
+    return this.adminService.getActivityFeed(24);
+  }
+
   @Get('orders')
   findOrders(
     @Query('page') page?: string,

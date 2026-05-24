@@ -109,7 +109,21 @@ Wait until you see something like: `Application is running on: http://localhost:
 npx nx dev frontend
 ```
 
-**8. Optional: add sample products**
+**8. Create the admin account**
+
+```bash
+npx tsx scripts/seed-admin.ts
+```
+
+This creates (or promotes) the default admin:
+
+| | |
+|---|---|
+| Email | `admin@luxe.com` |
+| Password | `LuxeAdmin123!` |
+| Admin URL | http://localhost:4200/admin |
+
+**9. Optional: add sample products**
 
 If the shop looks empty:
 
@@ -117,28 +131,7 @@ If the shop looks empty:
 npx tsx scripts/seed-products.ts
 ```
 
-Then open http://localhost:4200 in your browser.
-
----
-
-## Admin panel
-
-There is no built-in admin login. To try the admin side:
-
-1. Register a normal account on the site (http://localhost:4200/register).
-2. Open the database:
-
-   ```bash
-   docker compose exec postgres psql -U postgres -d shopping
-   ```
-
-3. Make your account an admin (use the email you registered with):
-
-   ```sql
-   UPDATE users SET role = 'ADMIN' WHERE email = 'your.email@example.com';
-   ```
-
-4. Log out, log back in, then go to http://localhost:4200/admin
+Then open http://localhost:4200 in your browser. Sign in with the admin account above to review the dashboard.
 
 ---
 

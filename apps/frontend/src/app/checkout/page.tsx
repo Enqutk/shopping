@@ -2,15 +2,18 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import StoreHeader from '../../components/StoreHeader';
 import StoreFooter from '../../components/store/StoreFooter';
-import { api } from '../../lib/api-axios';
+import { api, getAxiosStatus } from '../../lib/api-axios';
 import { cartLineId, useCartStore } from '../../store/cart.store';
+import { useAuthStore } from '../../store/auth.store';
 import { getErrorMessage, useToastStore } from '../../store/toast.store';
 
 export default function CheckoutPage() {
   const router = useRouter();
+  const user = useAuthStore((s) => s.user);
+  const authLoading = useAuthStore((s) => s.loading);
   const { items, clear } = useCartStore();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -22,7 +25,17 @@ export default function CheckoutPage() {
     [items],
   );
 
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.replace('/login?from=/checkout');
+    }
+  }, [authLoading, user, router]);
+
   const handlePlaceOrder = async () => {
+    if (!user) {
+      router.push('/login?from=/checkout');
+      return;
+    }
     if (items.length === 0) return;
     setError(null);
     setSubmitting(true);
@@ -39,6 +52,10 @@ export default function CheckoutPage() {
       toastSuccess('Order placed successfully', `/orders/${data.id}`);
       router.push(`/orders/${data.id}`);
     } catch (err: unknown) {
+      if (getAxiosStatus(err) === 401) {
+        router.push('/login?from=/checkout');
+        return;
+      }
       const msg = getErrorMessage(err, 'Checkout failed. Please try again.');
       setError(msg);
       toastError(msg);

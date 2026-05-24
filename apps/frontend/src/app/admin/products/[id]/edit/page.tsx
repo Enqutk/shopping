@@ -3,10 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import axios from 'axios';
+import { api } from '../../../../../lib/api-axios';
 import CategorySelect from '../../../../../components/admin/CategorySelect';
-
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
 
 export default function EditProductPage() {
   const router = useRouter();
@@ -27,7 +25,7 @@ export default function EditProductPage() {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await axios.get(`${API}/products/${id}`);
+        const response = await api.get(`/products/${id}`);
         const product = response.data;
         setName(product.name);
         setDescription(product.description || '');
@@ -68,18 +66,14 @@ export default function EditProductPage() {
 
     setSubmitting(true);
     try {
-      await axios.patch(
-        `${API}/products/${id}`,
-        {
+      await api.patch(`/products/${id}`, {
           name,
           description: description.trim() || undefined,
           price: parsedPrice,
           imageUrl: imageUrl.trim() || undefined,
           stock: parsedStock,
           category: category.trim() || undefined,
-        },
-        { withCredentials: true }
-      );
+        });
       router.push('/admin/products');
     } catch (err: any) {
       console.error('Failed to update product', err);

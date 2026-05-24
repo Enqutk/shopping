@@ -2,13 +2,15 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import { useRouter } from 'next/navigation';
+import { api } from '../../lib/api-axios';
 import type { AdminStats } from '@shopping/shared';
 import { getOrderStatusLabel, ORDER_STATUS_OPTIONS } from '@shopping/shared';
 import StatCard from '../../components/admin/StatCard';
 import RevenueChart from '../../components/admin/RevenueChart';
-
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
+import AdminActivityFeed from '../../components/admin/AdminActivityFeed';
+import AdminPartnersComingSoon from '../../components/admin/AdminPartnersComingSoon';
+import { useRealtimeStore } from '../../store/realtime.store';
 
 function statusColor(status: string) {
   switch (status) {
@@ -24,29 +26,66 @@ function statusColor(status: string) {
 }
 
 export default function AdminDashboardPage() {
+  const router = useRouter();
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [accessError, setAccessError] = useState<string | null>(null);
+  const adminActivities = useRealtimeStore((s) => s.adminActivities);
+
+  const loadStats = async () => {
+    try {
+      const res = await api.get<AdminStats>('/admin/stats');
+      setStats(res.data);
+      setAccessError(null);
+    } catch (e: unknown) {
+      const status = e && typeof e === 'object' && 'response' in e
+        ? (e as { response?: { status?: number } }).response?.status
+        : undefined;
+      if (status === 403) {
+        setAccessError(
+          'This account does not have admin access. Log out and sign in with admin@luxe.com',
+        );
+      } else {
+        console.error(e);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await axios.get<AdminStats>(`${API}/admin/stats`, {
-          withCredentials: true,
-        });
-        setStats(res.data);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
+    loadStats();
   }, []);
+
+  useEffect(() => {
+    if (adminActivities.length === 0) return;
+    const latest = adminActivities[0];
+    if (
+      latest.type === 'order.placed' ||
+      latest.type === 'order.payment_submitted' ||
+      latest.type === 'account.registered' ||
+      latest.type === 'account.google' ||
+      latest.type === 'order.status_updated'
+    ) {
+      loadStats();
+    }
+  }, [adminActivities]);
 
   if (loading) {
     return (
       <div className="py-24 flex justify-center">
         <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (accessError) {
+    return (
+      <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-8 text-center">
+        <p className="text-rose-200 text-sm">{accessError}</p>
+        <Link href="/login" className="inline-block mt-4 text-indigo-400 text-sm font-semibold hover:underline">
+          Go to sign in →
+        </Link>
       </div>
     );
   }
@@ -58,6 +97,7 @@ export default function AdminDashboardPage() {
   }
 
   const pending = stats.ordersByStatus.PENDING ?? 0;
+  const awaitingConfirm = stats.ordersByStatus.AWAITING_CONFIRMATION ?? 0;
   const paid = stats.ordersByStatus.PAID ?? 0;
 
   return (
@@ -113,6 +153,8 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
+      <AdminActivityFeed />
+
       <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-800 flex justify-between items-center">
           <h2 className="text-sm font-bold text-slate-300 uppercase tracking-wide">
@@ -140,7 +182,11 @@ export default function AdminDashboardPage() {
               </thead>
               <tbody className="divide-y divide-slate-800">
                 {stats.recentOrders.map((o) => (
-                  <tr key={o.id} className="hover:bg-slate-800/40">
+                  <tr
+                    key={o.id}
+                    className="hover:bg-slate-800/40 cursor-pointer"
+                    onClick={() => router.push(`/admin/orders/${o.id}`)}
+                  >
                     <td className="px-6 py-3 font-medium text-white">#{o.id}</td>
                     <td className="px-6 py-3 text-slate-400">
                       {o.userName || o.userEmail || `User ${o.userId}`}
@@ -160,6 +206,8 @@ export default function AdminDashboardPage() {
           </div>
         )}
       </div>
+
+      <AdminPartnersComingSoon />
 
       <div className="flex flex-wrap gap-3">
         <Link

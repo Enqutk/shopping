@@ -105,7 +105,7 @@ export default function AdminOrdersPage() {
             className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${
               statusFilter === opt.value
                 ? ORDER_STATUS_BADGE[opt.value]
-                : 'border-white/15 text-arctic-light hover:border-slate-500'
+                : 'border-white/15 text-arctic-light hover:border-femme-champagne/50'
             }`}
           >
             {opt.label}
@@ -139,7 +139,7 @@ export default function AdminOrdersPage() {
         <button
           type="button"
           onClick={() => setShowBroadcast((v) => !v)}
-          className="text-xs font-semibold uppercase tracking-wider text-arctic-light border border-white/10 rounded-lg px-4 py-2 hover:text-femme-champagne hover:border-slate-600"
+          className="text-xs font-semibold uppercase tracking-wider text-arctic-light border border-white/10 rounded-lg px-4 py-2 hover:text-femme-champagne hover:border-femme-champagne"
         >
           {showBroadcast ? 'Hide broadcast' : 'Broadcast'}
         </button>
@@ -155,7 +155,7 @@ export default function AdminOrdersPage() {
             onChange={(e) => setBroadcast(e.target.value)}
             placeholder="Notification message…"
             rows={2}
-            className="w-full auth-input bg-femme-black border border-white/10 rounded-lg px-3 py-2 text-sm text-arctic-deep outline-none focus:border-femme-champagne"
+            className="w-full auth-input"
           />
           <div className="flex flex-wrap gap-2 items-center">
             <select
@@ -181,7 +181,7 @@ export default function AdminOrdersPage() {
         {loading && !data ? (
           <div className="py-12 text-center text-arctic-light text-sm">Loading orders…</div>
         ) : !data || data.data.length === 0 ? (
-          <div className="py-12 text-center text-arctic-light text-sm rounded-xl border border-white/10 arctic-card border border-white/10 bg-femme-surface/60">
+          <div className={adminUi.empty}>
             No orders match your filters.
           </div>
         ) : (
@@ -201,7 +201,7 @@ export default function AdminOrdersPage() {
                     router.push(`/admin/orders/${o.id}`);
                   }
                 }}
-                className="rounded-xl border border-white/10 bg-slate-900/50 p-4 sm:p-5 hover:border-white/15 hover:bg-slate-900/80 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-femme-champagne/40"
+                className={adminUi.orderCard}
               >
                 <div className="flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-6">
                   <div className="flex-1 min-w-0 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">

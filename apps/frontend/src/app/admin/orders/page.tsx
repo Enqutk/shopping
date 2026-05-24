@@ -2,15 +2,13 @@
 
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
-import axios from 'axios';
+import { api } from '../../../lib/api-axios';
 import type { AdminOrderSummary, OrderStatus, PaginatedAdminOrders } from '@shopping/shared';
 import {
   getOrderStatusLabel,
   ORDER_STATUS_OPTIONS,
 } from '@shopping/shared';
 import { ORDER_STATUS_BADGE } from '../../../lib/order-status-ui';
-
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
 
 export default function AdminOrdersPage() {
   const router = useRouter();
@@ -34,9 +32,7 @@ export default function AdminOrdersPage() {
         ...(statusFilter && { status: statusFilter }),
         ...(search.trim() && { search: search.trim() }),
       });
-      const res = await axios.get<PaginatedAdminOrders>(`${API}/admin/orders?${params}`, {
-        withCredentials: true,
-      });
+      const res = await api.get<PaginatedAdminOrders>(`/admin/orders?${params}`);
       setData(res.data);
     } catch (e) {
       console.error(e);
@@ -53,11 +49,7 @@ export default function AdminOrdersPage() {
   const updateStatus = async (orderId: number, status: OrderStatus) => {
     setUpdatingId(orderId);
     try {
-      await axios.patch(
-        `${API}/orders/${orderId}/status`,
-        { status },
-        { withCredentials: true },
-      );
+      await api.patch(`/orders/${orderId}/status`, { status });
       await load();
     } catch (e) {
       console.error(e);
@@ -72,11 +64,7 @@ export default function AdminOrdersPage() {
     if (!broadcast.trim()) return;
     setSending(true);
     try {
-      await axios.post(
-        `${API}/orders/admin/broadcast`,
-        { message: broadcast.trim(), audience },
-        { withCredentials: true },
-      );
+      await api.post('/orders/admin/broadcast', { message: broadcast.trim(), audience });
       setBroadcast('');
     } catch (err) {
       console.error(err);

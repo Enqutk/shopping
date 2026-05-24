@@ -28,12 +28,18 @@ export class ProductsController {
     @Query('limit') limit?: string,
     @Query('search') search?: string,
     @Query('category') category?: string,
+    @Query('minPrice') minPrice?: string,
+    @Query('maxPrice') maxPrice?: string,
   ) {
+    const min = minPrice != null && minPrice !== '' ? Number(minPrice) : undefined;
+    const max = maxPrice != null && maxPrice !== '' ? Number(maxPrice) : undefined;
     return this.productsService.findAll({
       page: page ? parseInt(page, 10) : 1,
       limit: limit ? parseInt(limit, 10) : 20,
       search,
       category,
+      minPrice: min != null && !Number.isNaN(min) ? min : undefined,
+      maxPrice: max != null && !Number.isNaN(max) ? max : undefined,
     });
   }
 

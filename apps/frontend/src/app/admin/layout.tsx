@@ -4,6 +4,7 @@ import { useAuthStore } from '../../store/auth.store';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import Link from 'next/link';
+import { adminUi } from '../../lib/admin-ui';
 
 const nav = [
   { href: '/admin', label: 'Dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
@@ -24,18 +25,11 @@ function NavLink({
   active: boolean;
 }) {
   return (
-    <Link
-      href={href}
-      className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 ${
-        active
-          ? 'bg-indigo-600/20 text-white border border-indigo-500/30'
-          : 'text-slate-300 hover:text-white hover:bg-slate-800'
-      }`}
-    >
+    <Link href={href} className={active ? adminUi.navActive : adminUi.navInactive}>
       <svg className="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={icon} />
       </svg>
-      {label}
+      <span className="text-[11px] font-bold uppercase tracking-[0.12em]">{label}</span>
     </Link>
   );
 }
@@ -55,9 +49,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center text-white">
-        <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-4" />
-        <p className="text-slate-400 text-sm font-medium animate-pulse">Checking credentials...</p>
+      <div className="min-h-screen bg-femme-black flex flex-col items-center justify-center">
+        <div className={adminUi.spinner} />
+        <p className={`${adminUi.muted} text-sm font-medium mt-4 animate-pulse`}>
+          Checking credentials…
+        </p>
       </div>
     );
   }
@@ -72,47 +68,59 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex font-sans">
-      <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between p-6 shrink-0">
+    <div className="min-h-screen bg-femme-black text-arctic-deep flex font-sans">
+      <aside
+        className={`w-64 bg-femme-surface border-r ${adminUi.borderSubtle} flex flex-col justify-between p-6 shrink-0`}
+      >
         <div>
-          <Link href="/admin" className="flex items-center space-x-2 mb-8">
-            <span className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">
-              Shop Admin
-            </span>
+          <Link href="/admin" className="block mb-8">
+            <p className="font-script text-femme-champagne text-3xl leading-none">LUXE</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-arctic-light mt-1">
+              Admin
+            </p>
           </Link>
 
-          <nav className="space-y-2">
+          <nav className="space-y-1.5">
             {nav.map((item) => (
               <NavLink key={item.href} {...item} active={isActive(item.href)} />
             ))}
             <Link
               href="/products"
-              className="flex items-center px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-all duration-200 border-t border-slate-800 mt-4 pt-4"
+              className={`${adminUi.navInactive} border-t ${adminUi.borderSubtle} mt-4 pt-4`}
             >
               <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                />
               </svg>
-              Storefront
+              <span className="text-[11px] font-bold uppercase tracking-[0.12em]">Storefront</span>
             </Link>
           </nav>
         </div>
 
-        <div className="flex items-center space-x-3 border-t border-slate-800 pt-4">
+        <div className={`flex items-center gap-3 border-t ${adminUi.borderSubtle} pt-4`}>
           {user.avatar ? (
-            <img src={user.avatar} alt="" className="w-10 h-10 rounded-full border-2 border-indigo-500" />
+            <img
+              src={user.avatar}
+              alt=""
+              className="w-10 h-10 rounded-full border-2 border-femme-champagne/50"
+            />
           ) : (
-            <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center font-bold text-white">
+            <div className="w-10 h-10 rounded-full bg-femme-champagne/20 border border-femme-champagne/40 flex items-center justify-center font-bold text-femme-champagne">
               {user.name.charAt(0)}
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold truncate">{user.name}</p>
-            <p className="text-xs text-slate-400 truncate">Administrator</p>
+            <p className="text-sm font-semibold text-arctic-deep truncate">{user.name}</p>
+            <p className={`text-xs ${adminUi.muted} truncate`}>Administrator</p>
           </div>
         </div>
       </aside>
 
-      <main className="flex-1 overflow-y-auto p-8 lg:p-12">
+      <main className="flex-1 overflow-y-auto p-8 lg:p-12 bg-femme-black">
         <div className="max-w-6xl mx-auto">{children}</div>
       </main>
     </div>

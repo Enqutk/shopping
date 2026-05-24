@@ -31,6 +31,22 @@ export class OrdersController {
     return this.ordersService.checkout(req.user.id, dto);
   }
 
+  @Post('pay/:id')
+  @UseGuards(AuthGuard('jwt'))
+  pay(
+    @Req() req: { user: { id: number } },
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.ordersService.payByCustomer(req.user.id, id);
+  }
+
+  @Post(':id/confirm-payment')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN')
+  confirmPayment(@Param('id', ParseIntPipe) id: number) {
+    return this.ordersService.confirmPaymentByAdmin(id);
+  }
+
   @Post('admin/broadcast')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('ADMIN')

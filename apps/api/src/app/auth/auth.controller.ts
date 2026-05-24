@@ -8,6 +8,7 @@ import {
   Req,
   Res,
   UseGuards,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Response, Request } from 'express';
@@ -124,6 +125,22 @@ export class AuthController {
     }
     const frontendUrl = this.configService.get<string>('FRONTEND_URL');
     return res.redirect(`${frontendUrl}/login/success`);
+  }
+
+  @Post('refresh')
+  async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    const raw = req.cookies['refresh_token'];
+    if (!raw) {
+      throw new UnauthorizedException();
+    }
+    const accessToken = await this.authService.refreshAccessToken(raw);
+    res.cookie('access_token', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 15 * 60 * 1000,
+    });
+    return { ok: true };
   }
 
   @Get('me')

@@ -1,7 +1,7 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { DATABASE_CONNECTION, refreshTokens } from '@shopping/database';
-import { eq } from 'drizzle-orm';
+import { DATABASE_CONNECTION, refreshTokens, users } from '@shopping/database';
+import { and, eq, gt } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as crypto from 'crypto';
 
@@ -43,5 +43,41 @@ export class AuthService {
     await this.db.update(refreshTokens)
       .set({ revoked: true })
       .where(eq(refreshTokens.tokenHash, tokenHash));
+  }
+
+  async refreshAccessToken(rawRefreshToken: string) {
+    const tokenHash = this.hashToken(rawRefreshToken);
+    const rows = await this.db
+      .select()
+      .from(refreshTokens)
+      .where(
+        and(
+          eq(refreshTokens.tokenHash, tokenHash),
+          eq(refreshTokens.revoked, false),
+          gt(refreshTokens.expiresAt, new Date()),
+        ),
+      )
+      .limit(1);
+
+    const row = rows[0];
+    if (!row) {
+      throw new UnauthorizedException();
+    }
+
+    const userRows = await this.db
+      .select()
+      .from(users)
+      .where(eq(users.id, row.userId))
+      .limit(1);
+    const user = userRows[0];
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+
+    return this.jwtService.sign({
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    });
   }
 }

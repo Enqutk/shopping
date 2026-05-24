@@ -1,7 +1,7 @@
 import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import { DATABASE_CONNECTION, products } from '@shopping/database';
 import { categoryFilterValues } from '@shopping/shared';
-import { eq, ilike, inArray, or, sql } from 'drizzle-orm';
+import { and, eq, gte, ilike, inArray, lte, or, sql } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { CreateProductDto } from './create-product.dto';
 import { UpdateProductDto } from './update-product.dto';
@@ -11,6 +11,8 @@ export interface ProductQuery {
   limit?: number;
   search?: string;
   category?: string;
+  minPrice?: number;
+  maxPrice?: number;
 }
 
 @Injectable()
@@ -47,9 +49,15 @@ export class ProductsService {
       }
     }
 
-    const where = conditions.length > 0
-      ? conditions.reduce((acc, cond) => (acc ? sql`${acc} AND ${cond}` : cond))
-      : undefined;
+    if (query.minPrice != null && !Number.isNaN(query.minPrice) && query.minPrice >= 0) {
+      conditions.push(gte(products.price, String(query.minPrice)));
+    }
+
+    if (query.maxPrice != null && !Number.isNaN(query.maxPrice) && query.maxPrice >= 0) {
+      conditions.push(lte(products.price, String(query.maxPrice)));
+    }
+
+    const where = conditions.length > 0 ? and(...conditions) : undefined;
 
     const [data, countResult] = await Promise.all([
       where

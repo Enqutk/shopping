@@ -13,7 +13,8 @@ export function apiBaseUrl(): string {
   return env || 'http://localhost:3000/api';
 }
 
-async function tryRefreshSession(): Promise<boolean> {
+/** Refresh the access_token cookie using refresh_token. */
+export async function refreshSession(): Promise<boolean> {
   const base = apiBaseUrl();
   try {
     const res = await fetch(`${base}/auth/refresh`, {
@@ -37,7 +38,7 @@ export async function apiFetch(
 
   let res = await fetch(url, opts);
   if (res.status === 401 && !_authRetry) {
-    const refreshed = await tryRefreshSession();
+    const refreshed = await refreshSession();
     if (refreshed) {
       res = await apiFetch(path, { ...init, _authRetry: true });
     }

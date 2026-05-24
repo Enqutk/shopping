@@ -3,7 +3,8 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { api } from '../../lib/api-axios';
+import { api, getAxiosStatus } from '../../lib/api-axios';
+import { useAuthStore } from '../../store/auth.store';
 import type { AdminStats } from '@shopping/shared';
 import { getOrderStatusLabel, ORDER_STATUS_OPTIONS } from '@shopping/shared';
 import StatCard from '../../components/admin/StatCard';
@@ -15,6 +16,7 @@ import { adminStatusBadge, adminUi } from '../../lib/admin-ui';
 
 export default function AdminDashboardPage() {
   const router = useRouter();
+  const logout = useAuthStore((s) => s.logout);
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [accessError, setAccessError] = useState<string | null>(null);
@@ -26,15 +28,16 @@ export default function AdminDashboardPage() {
       setStats(res.data);
       setAccessError(null);
     } catch (e: unknown) {
-      const status = e && typeof e === 'object' && 'response' in e
-        ? (e as { response?: { status?: number } }).response?.status
-        : undefined;
+      const status = getAxiosStatus(e);
+      if (status === 401) {
+        logout();
+        router.push('/login?from=/admin');
+        return;
+      }
       if (status === 403) {
         setAccessError(
           'This account does not have admin access. Log out and sign in with admin@luxe.com',
         );
-      } else {
-        console.error(e);
       }
     } finally {
       setLoading(false);

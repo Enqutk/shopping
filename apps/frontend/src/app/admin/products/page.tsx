@@ -2,11 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import axios from 'axios';
+import { api } from '../../../lib/api-axios';
 import { PaginatedProducts } from '@shopping/shared';
 import CategorySelect from '../../../components/admin/CategorySelect';
-
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
 
 export default function AdminProductsPage() {
   const [data, setData] = useState<PaginatedProducts | null>(null);
@@ -25,7 +23,7 @@ export default function AdminProductsPage() {
         ...(search && { search }),
         ...(category && { category }),
       });
-      const response = await axios.get<PaginatedProducts>(`${API}/products?${params}`);
+      const response = await api.get<PaginatedProducts>(`/products?${params}`);
       setData(response.data);
     } catch (err) {
       console.error('Failed to fetch products', err);
@@ -43,7 +41,7 @@ export default function AdminProductsPage() {
     if (!confirm('Are you sure you want to delete this product?')) return;
     setDeletingId(id);
     try {
-      await axios.delete(`${API}/products/${id}`, { withCredentials: true });
+      await api.delete(`/products/${id}`);
       // Refresh the product list
       await fetchProducts();
     } catch (err) {

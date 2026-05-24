@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { api } from '../../lib/api-axios';
 import type { AdminActivityDto } from '@shopping/shared';
 import { adminUi } from '../../lib/admin-ui';
+import { useAuthStore } from '../../store/auth.store';
 import { useRealtimeStore, type AdminActivityItem } from '../../store/realtime.store';
 
 function activityIcon(type: string) {
@@ -76,12 +77,16 @@ function ActivityRow({ item }: { item: AdminActivityItem }) {
 }
 
 export default function AdminActivityFeed() {
+  const user = useAuthStore((s) => s.user);
+  const authLoading = useAuthStore((s) => s.loading);
   const activities = useRealtimeStore((s) => s.adminActivities);
   const connected = useRealtimeStore((s) => s.connected);
   const clear = useRealtimeStore((s) => s.clearAdminActivities);
   const hydrate = useRealtimeStore((s) => s.hydrateAdminActivities);
 
   useEffect(() => {
+    if (authLoading || user?.role !== 'ADMIN') return;
+
     let cancelled = false;
     (async () => {
       try {
@@ -95,13 +100,13 @@ export default function AdminActivityFeed() {
           );
         }
       } catch {
-        /* non-admin or API offline */
+        /* session expired or API offline */
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [hydrate]);
+  }, [hydrate, authLoading, user?.role]);
 
   const cutoff = Date.now() - 24 * 60 * 60 * 1000;
   const recent = activities.filter((a) => new Date(a.at).getTime() >= cutoff);

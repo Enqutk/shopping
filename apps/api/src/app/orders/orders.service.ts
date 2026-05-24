@@ -15,7 +15,12 @@ import {
 } from './order-timeline.helper';
 import { getOrderStatusLabel, STATUS_EVENT_MESSAGES } from '@shopping/shared';
 
-type MergedLine = { productId: number; quantity: number };
+type MergedLine = {
+  productId: number;
+  quantity: number;
+  color?: string;
+  size?: string;
+};
 
 @Injectable()
 export class OrdersService {
@@ -26,11 +31,24 @@ export class OrdersService {
   ) {}
 
   private mergeLines(items: CheckoutLineDto[]): MergedLine[] {
-    const map = new Map<number, number>();
+    const map = new Map<string, MergedLine>();
     for (const row of items) {
-      map.set(row.productId, (map.get(row.productId) ?? 0) + row.quantity);
+      const color = row.color?.trim() || undefined;
+      const size = row.size?.trim() || undefined;
+      const key = `${row.productId}|${color ?? ''}|${size ?? ''}`;
+      const existing = map.get(key);
+      if (existing) {
+        existing.quantity += row.quantity;
+      } else {
+        map.set(key, {
+          productId: row.productId,
+          quantity: row.quantity,
+          color,
+          size,
+        });
+      }
     }
-    return [...map.entries()].map(([productId, quantity]) => ({ productId, quantity }));
+    return [...map.values()];
   }
 
   async checkout(userId: number, dto: CheckoutDto) {
@@ -84,6 +102,8 @@ export class OrdersService {
             productId: line.productId,
             quantity: line.quantity,
             price: String(p.price),
+            color: line.color ?? null,
+            size: line.size ?? null,
           };
         }),
       );
@@ -185,6 +205,8 @@ export class OrdersService {
         productId: orderItems.productId,
         quantity: orderItems.quantity,
         price: orderItems.price,
+        color: orderItems.color,
+        size: orderItems.size,
         productName: products.name,
         productImageUrl: products.imageUrl,
       })
@@ -205,6 +227,8 @@ export class OrdersService {
         productId: row.productId,
         quantity: row.quantity,
         price: String(row.price),
+        color: row.color ?? null,
+        size: row.size ?? null,
         productName: row.productName,
         productImageUrl: row.productImageUrl,
       })),
@@ -222,9 +246,102 @@ export class OrdersService {
     return order;
   }
 
+  async payByCustomer(userId: number, orderId: number) {
+    const existing = await this.findOneByIdForAdmin(orderId);
+    if (existing.userId !== userId) {
+      throw new NotFoundException(`Order #${orderId} not found`);
+    }
+    if (existing.status === 'AWAITING_CONFIRMATION') {
+      throw new BadRequestException(
+        'Payment already submitted — waiting for confirmation',
+      );
+    }
+    if (existing.status !== 'PENDING') {
+      throw new BadRequestException(
+        existing.status === 'PAID' || existing.status === 'SHIPPED'
+          ? 'This order is already paid'
+          : 'This order can no longer be paid online',
+      );
+    }
+
+    await this.db
+      .update(orders)
+      .set({ status: 'AWAITING_CONFIRMATION' })
+      .where(eq(orders.id, orderId));
+    await appendOrderStatusEvent(
+      this.db,
+      orderId,
+      'AWAITING_CONFIRMATION',
+      STATUS_EVENT_MESSAGES.AWAITING_CONFIRMATION,
+    );
+
+    const customer = await this.db
+      .select({ name: users.name, email: users.email })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    const c = customer[0];
+    this.realtime.emitAdminActivity({
+      type: 'order.payment_submitted',
+      message: `Payment to confirm — Order #${orderId} · ${c?.name ?? 'Customer'} · $${Number(existing.totalPrice).toFixed(2)}`,
+      href: `/admin/orders/${orderId}`,
+      meta: {
+        orderId,
+        userId,
+        userName: c?.name ?? undefined,
+        userEmail: c?.email ?? undefined,
+        status: 'AWAITING_CONFIRMATION',
+      },
+    });
+
+    return this.findOneForUser(userId, orderId);
+  }
+
+  async confirmPaymentByAdmin(orderId: number) {
+    const existing = await this.findOneByIdForAdmin(orderId);
+    if (existing.status !== 'AWAITING_CONFIRMATION') {
+      throw new BadRequestException(
+        existing.status === 'PAID' || existing.status === 'SHIPPED'
+          ? 'Payment is already confirmed'
+          : 'This order is not awaiting payment confirmation',
+      );
+    }
+
+    const paidMessage = STATUS_EVENT_MESSAGES.PAID;
+    await this.db.update(orders).set({ status: 'PAID' }).where(eq(orders.id, orderId));
+    await appendOrderStatusEvent(this.db, orderId, 'PAID', paidMessage);
+    this.realtime.emitOrderStatus(existing.userId, { orderId, status: 'PAID' });
+
+    const customer = await this.db
+      .select({ name: users.name, email: users.email })
+      .from(users)
+      .where(eq(users.id, existing.userId))
+      .limit(1);
+    const c = customer[0];
+    this.realtime.emitAdminActivity({
+      type: 'order.status_updated',
+      message: `Payment confirmed — Order #${orderId} · ${c?.name ?? 'Customer'}`,
+      href: `/admin/orders/${orderId}`,
+      meta: {
+        orderId,
+        userId: existing.userId,
+        userName: c?.name ?? undefined,
+        userEmail: c?.email ?? undefined,
+        status: 'PAID',
+      },
+    });
+
+    return this.findOneForUser(existing.userId, orderId);
+  }
+
   async updateStatusByAdmin(
     orderId: number,
-    status: 'PENDING' | 'PAID' | 'SHIPPED' | 'CANCELLED',
+    status:
+      | 'PENDING'
+      | 'AWAITING_CONFIRMATION'
+      | 'PAID'
+      | 'SHIPPED'
+      | 'CANCELLED',
   ) {
     const existing = await this.findOneByIdForAdmin(orderId);
     if (existing.status !== status) {

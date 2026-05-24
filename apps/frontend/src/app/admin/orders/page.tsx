@@ -9,6 +9,7 @@ import {
   ORDER_STATUS_OPTIONS,
 } from '@shopping/shared';
 import { ORDER_STATUS_BADGE } from '../../../lib/order-status-ui';
+import { adminUi } from '../../../lib/admin-ui';
 
 export default function AdminOrdersPage() {
   const router = useRouter();
@@ -80,8 +81,8 @@ export default function AdminOrdersPage() {
     <div className="max-w-6xl">
       <header className="mb-6 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-arctic-deep tracking-tight">Orders</h1>
-          <p className="text-arctic-light text-sm mt-1">
+          <h1 className={adminUi.pageTitle}>Orders</h1>
+          <p className={adminUi.pageSub}>
             Update status — customers get a live notification.
           </p>
         </div>
@@ -133,7 +134,7 @@ export default function AdminOrdersPage() {
             setSearch(e.target.value);
             setPage(1);
           }}
-          className="flex-1 bg-slate-900/80 border border-white/10 rounded-lg px-3 py-2 text-sm text-arctic-deep placeholder-slate-600 outline-none focus:border-femme-champagne"
+          className={`flex-1 ${adminUi.input}`}
         />
         <button
           type="button"
@@ -168,7 +169,7 @@ export default function AdminOrdersPage() {
             <button
               type="submit"
               disabled={sending || !broadcast.trim()}
-              className="px-3 py-1.5 bg-femme-champagne hover:bg-femme-champagne-light text-arctic-deep text-xs font-semibold rounded-lg disabled:opacity-40"
+              className={`px-3 py-1.5 ${adminUi.btnPrimary} !inline-flex disabled:opacity-40`}
             >
               {sending ? 'Sending…' : 'Send'}
             </button>

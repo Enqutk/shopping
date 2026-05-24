@@ -3,13 +3,11 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
-import axios from 'axios';
 import StoreHeader from '../../components/StoreHeader';
 import StoreFooter from '../../components/store/StoreFooter';
-import { useCartStore } from '../../store/cart.store';
+import { api } from '../../lib/api-axios';
+import { cartLineId, useCartStore } from '../../store/cart.store';
 import { getErrorMessage, useToastStore } from '../../store/toast.store';
-
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -29,13 +27,14 @@ export default function CheckoutPage() {
     setError(null);
     setSubmitting(true);
     try {
-      const { data } = await axios.post(
-        `${API}/orders/checkout`,
-        {
-          items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
-        },
-        { withCredentials: true },
-      );
+      const { data } = await api.post('/orders/checkout', {
+        items: items.map((i) => ({
+          productId: i.productId,
+          quantity: i.quantity,
+          ...(i.color ? { color: i.color } : {}),
+          ...(i.size ? { size: i.size } : {}),
+        })),
+      });
       clear();
       toastSuccess('Order placed successfully', `/orders/${data.id}`);
       router.push(`/orders/${data.id}`);
@@ -60,7 +59,7 @@ export default function CheckoutPage() {
         </Link>
         <h1 className="font-display text-3xl text-luxe-ink mb-2">Checkout</h1>
         <p className="text-sm text-gray-500 mb-8">
-          Review your order and place it securely. Payment integration can be added in a later sprint.
+          Review your order, then complete payment on the next screen to confirm it.
         </p>
 
         {items.length === 0 ? (
@@ -81,11 +80,16 @@ export default function CheckoutPage() {
               <div className="divide-y divide-gray-100">
                 {items.map((line) => (
                   <div
-                    key={line.productId}
+                    key={cartLineId(line)}
                     className="flex justify-between gap-4 px-5 py-4 text-sm"
                   >
                     <div>
                       <p className="font-semibold text-gray-900">{line.name}</p>
+                      {(line.color || line.size) && (
+                        <p className="text-xs text-indigo-600 mt-0.5">
+                          {[line.color, line.size].filter(Boolean).join(' · ')}
+                        </p>
+                      )}
                       <p className="text-gray-500 mt-0.5">
                         Qty {line.quantity} × ${Number(line.price).toFixed(2)}
                       </p>
@@ -111,7 +115,7 @@ export default function CheckoutPage() {
               {submitting && (
                 <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
               )}
-              {submitting ? 'Placing order…' : 'Place order'}
+              {submitting ? 'Placing order…' : 'Place order & continue to payment'}
             </button>
           </>
         )}

@@ -9,6 +9,7 @@ import StoreHeader from '../../components/StoreHeader';
 import StoreFooter from '../../components/store/StoreFooter';
 import StoreScene from '../../components/immersive/StoreScene';
 import CategoryChips from '../../components/store/CategoryChips';
+import BudgetFilter from '../../components/store/BudgetFilter';
 import ErrorState from '../../components/ui/ErrorState';
 import { ProductGridSkeleton } from '../../components/ui/Skeleton';
 import { PaginatedProducts } from '@shopping/shared';
@@ -21,12 +22,20 @@ function ProductsContent() {
   const [data, setData] = useState<PaginatedProducts | null>(null);
   const [search, setSearch] = useState(searchParams.get('q') ?? '');
   const category = searchParams.get('category') ?? '';
+  const minPrice = searchParams.get('minPrice') ?? '';
+  const maxPrice = searchParams.get('maxPrice') ?? '';
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const syncQuery = useCallback(
-    (next: { category?: string; q?: string; page?: number }) => {
+    (next: {
+      category?: string;
+      q?: string;
+      page?: number;
+      minPrice?: string;
+      maxPrice?: string;
+    }) => {
       const params = new URLSearchParams(searchParams.toString());
       if (next.category !== undefined) {
         if (next.category) params.set('category', next.category);
@@ -35,6 +44,14 @@ function ProductsContent() {
       if (next.q !== undefined) {
         if (next.q) params.set('q', next.q);
         else params.delete('q');
+      }
+      if (next.minPrice !== undefined) {
+        if (next.minPrice) params.set('minPrice', next.minPrice);
+        else params.delete('minPrice');
+      }
+      if (next.maxPrice !== undefined) {
+        if (next.maxPrice) params.set('maxPrice', next.maxPrice);
+        else params.delete('maxPrice');
       }
       if (next.page !== undefined && next.page > 1) params.set('page', String(next.page));
       else if (next.page === 1) params.delete('page');
@@ -60,6 +77,8 @@ function ProductsContent() {
         limit: '12',
         ...(search && { search }),
         ...(category && { category }),
+        ...(minPrice && { minPrice }),
+        ...(maxPrice && { maxPrice }),
       });
       const res = await apiFetch(`/products?${params}`);
       if (!res.ok) {
@@ -80,9 +99,10 @@ function ProductsContent() {
   useEffect(() => {
     const debounce = setTimeout(() => void fetchProducts(), 300);
     return () => clearTimeout(debounce);
-  }, [search, category, page]);
+  }, [search, category, page, minPrice, maxPrice]);
 
   const totalPages = data ? Math.ceil(data.total / data.limit) : 0;
+  const showBudgetFilter = Boolean(search.trim() || searchParams.get('q'));
 
   return (
     <div className="store-page">
@@ -109,7 +129,22 @@ function ProductsContent() {
                 syncQuery({ category: c, page: 1 });
               }}
             />
-            <span className="hidden sm:inline fashion-see-all pointer-events-none">Browse all →</span>
+            {showBudgetFilter ? (
+              <BudgetFilter
+                minPrice={minPrice}
+                maxPrice={maxPrice}
+                onApply={(min, max) => {
+                  setPage(1);
+                  syncQuery({ minPrice: min, maxPrice: max, page: 1 });
+                }}
+                onClear={() => {
+                  setPage(1);
+                  syncQuery({ minPrice: '', maxPrice: '', page: 1 });
+                }}
+              />
+            ) : (
+              <span className="hidden sm:inline fashion-see-all pointer-events-none">Browse all →</span>
+            )}
           </div>
         </div>
       </div>
@@ -121,7 +156,7 @@ function ProductsContent() {
           <ProductGridSkeleton count={12} />
         ) : data?.data.length === 0 ? (
           <div className="text-center py-24 max-w-md mx-auto">
-            {data.total === 0 && !category && !search ? (
+            {data.total === 0 && !category && !search && !minPrice && !maxPrice ? (
               <>
                 <p className="font-script text-femme-champagne text-3xl">Coming soon</p>
                 <p className="section-heading mt-4 text-xl">Catalog is empty</p>
@@ -141,14 +176,16 @@ function ProductsContent() {
                 <p className="text-sm text-arctic-light mt-2 normal-case">
                   {category
                     ? `Nothing in ${getCategoryLabel(category)} right now.`
-                    : 'Try another category or search term.'}
+                    : minPrice || maxPrice
+                      ? 'Try widening your budget or changing your search.'
+                      : 'Try another category or search term.'}
                 </p>
                 <button
                   type="button"
                   onClick={() => {
                     setSearch('');
                     setPage(1);
-                    syncQuery({ category: '', q: '', page: 1 });
+                    syncQuery({ category: '', q: '', minPrice: '', maxPrice: '', page: 1 });
                   }}
                   className="btn-ghost inline-block mt-8"
                 >
@@ -161,6 +198,13 @@ function ProductsContent() {
           <>
             <p className="text-[10px] uppercase tracking-[0.25em] text-arctic-deep/50 mb-6">
               {data?.total} products
+              {(minPrice || maxPrice) && (
+                <span className="text-femme-champagne/80">
+                  {' '}
+                  · ${minPrice || '0'}
+                  {maxPrice ? ` – $${maxPrice}` : '+'}
+                </span>
+              )}
             </p>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
               {data?.data.map((product) => (

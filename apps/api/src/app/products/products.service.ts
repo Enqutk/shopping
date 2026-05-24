@@ -1,10 +1,30 @@
 import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import { DATABASE_CONNECTION, products } from '@shopping/database';
 import { categoryFilterValues } from '@shopping/shared';
-import { and, eq, gte, ilike, inArray, lte, or, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, ilike, inArray, lte, or, sql } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { CreateProductDto } from './create-product.dto';
 import { UpdateProductDto } from './update-product.dto';
+import type { ProductColorOptionDto } from './product-variant.dto';
+
+function normalizeColors(
+  colors?: ProductColorOptionDto[] | null,
+): { name: string; hex: string }[] | null {
+  if (colors == null) return null;
+  const cleaned = colors
+    .map((c) => ({
+      name: c.name.trim(),
+      hex: c.hex.trim(),
+    }))
+    .filter((c) => c.name.length > 0);
+  return cleaned.length > 0 ? cleaned : null;
+}
+
+function normalizeSizes(sizes?: string[] | null): string[] | null {
+  if (sizes == null) return null;
+  const cleaned = sizes.map((s) => s.trim()).filter(Boolean);
+  return cleaned.length > 0 ? cleaned : null;
+}
 
 export interface ProductQuery {
   page?: number;
@@ -58,11 +78,23 @@ export class ProductsService {
     }
 
     const where = conditions.length > 0 ? and(...conditions) : undefined;
+    const newestFirst = [desc(products.createdAt), desc(products.id)];
 
     const [data, countResult] = await Promise.all([
       where
-        ? this.db.select().from(products).where(where).limit(limit).offset(offset)
-        : this.db.select().from(products).limit(limit).offset(offset),
+        ? this.db
+            .select()
+            .from(products)
+            .where(where)
+            .orderBy(...newestFirst)
+            .limit(limit)
+            .offset(offset)
+        : this.db
+            .select()
+            .from(products)
+            .orderBy(...newestFirst)
+            .limit(limit)
+            .offset(offset),
       where
         ? this.db.select({ count: sql<number>`count(*)` }).from(products).where(where)
         : this.db.select({ count: sql<number>`count(*)` }).from(products),
@@ -99,6 +131,8 @@ export class ProductsService {
         imageUrl: dto.imageUrl,
         stock: dto.stock ?? 0,
         category: dto.category,
+        availableColors: normalizeColors(dto.availableColors),
+        availableSizes: normalizeSizes(dto.availableSizes),
       })
       .returning();
     return inserted[0];
@@ -116,6 +150,12 @@ export class ProductsService {
         ...(dto.imageUrl !== undefined && { imageUrl: dto.imageUrl }),
         ...(dto.stock !== undefined && { stock: dto.stock }),
         ...(dto.category !== undefined && { category: dto.category }),
+        ...(dto.availableColors !== undefined && {
+          availableColors: normalizeColors(dto.availableColors),
+        }),
+        ...(dto.availableSizes !== undefined && {
+          availableSizes: normalizeSizes(dto.availableSizes),
+        }),
       })
       .where(eq(products.id, id))
       .returning();

@@ -8,3 +8,4 @@ export * from './lib/dto/order.js';
 export * from './lib/order-status.js';
 export * from './lib/order-timeline.js';
 export * from './lib/dto/admin.js';
+export * from './lib/dto/admin-activity.js';

@@ -95,7 +95,7 @@ export default function NewProductPage() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Air Max Alpha"
-            className="w-full auth-input bg-femme-black border border-white/10 focus:border-femme-champagne focus:ring-1 focus:ring-femme-champagne rounded-xl px-4 py-3 text-sm text-arctic-deep placeholder-slate-600 outline-none transition-colors"
+            className="w-full auth-input"
           />
         </div>
 
@@ -110,7 +110,7 @@ export default function NewProductPage() {
               value={price}
               onChange={(e) => setPrice(e.target.value)}
               placeholder="49.99"
-              className="w-full auth-input bg-femme-black border border-white/10 focus:border-femme-champagne focus:ring-1 focus:ring-femme-champagne rounded-xl px-4 py-3 text-sm text-arctic-deep placeholder-slate-600 outline-none transition-colors"
+              className="w-full auth-input"
             />
           </div>
 
@@ -122,7 +122,7 @@ export default function NewProductPage() {
               required
               value={stock}
               onChange={(e) => setStock(e.target.value)}
-              className="w-full auth-input bg-femme-black border border-white/10 focus:border-femme-champagne focus:ring-1 focus:ring-femme-champagne rounded-xl px-4 py-3 text-sm text-arctic-deep outline-none transition-colors"
+              className="w-full auth-input"
             />
           </div>
         </div>
@@ -133,7 +133,7 @@ export default function NewProductPage() {
             <CategorySelect
               value={category}
               onChange={setCategory}
-              className="w-full auth-input bg-femme-black border border-white/10 focus:border-femme-champagne focus:ring-1 focus:ring-femme-champagne rounded-xl px-4 py-3 text-sm text-arctic-deep outline-none transition-colors"
+              className="w-full auth-input"
             />
           </div>
 
@@ -144,7 +144,7 @@ export default function NewProductPage() {
               value={imageUrl}
               onChange={(e) => setImageUrl(e.target.value)}
               placeholder="https://images.unsplash.com/..."
-              className="w-full auth-input bg-femme-black border border-white/10 focus:border-femme-champagne focus:ring-1 focus:ring-femme-champagne rounded-xl px-4 py-3 text-sm text-arctic-deep placeholder-slate-600 outline-none transition-colors"
+              className="w-full auth-input"
             />
           </div>
         </div>
@@ -156,21 +156,21 @@ export default function NewProductPage() {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Provide a detailed description of the product features, sizing, materials..."
-            className="w-full auth-input bg-femme-black border border-white/10 focus:border-femme-champagne focus:ring-1 focus:ring-femme-champagne rounded-xl px-4 py-3 text-sm text-arctic-deep placeholder-slate-600 outline-none transition-colors resize-none"
+            className="w-full auth-input"
           />
         </div>
 
         <div className="flex justify-end space-x-4 border-t border-white/10 pt-6">
           <Link
             href="/admin/products"
-            className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-arctic-deep font-semibold rounded-xl transition-colors text-sm"
+            className="px-6 py-3 bg-femme-black/60 hover:border-femme-champagne text-arctic-deep font-semibold rounded-xl transition-colors text-sm"
           >
             Cancel
           </Link>
           <button
             type="submit"
             disabled={submitting}
-            className="bg-femme-champagne hover:bg-femme-champagne-light text-arctic-deep font-semibold px-6 py-3 rounded-xl transition-all hover:scale-[1.01] flex items-center space-x-2 shadow-lg shadow-indigo-600/10 disabled:opacity-40 disabled:scale-100"
+            className="bg-femme-champagne hover:bg-femme-champagne-light text-arctic-deep font-semibold px-6 py-3 rounded-xl transition-all hover:scale-[1.01] flex items-center space-x-2 shadow-lg shadow-[0_0_20px_rgba(201,169,98,0.15)] disabled:opacity-40 disabled:scale-100"
           >
             {submitting ? (
               <>

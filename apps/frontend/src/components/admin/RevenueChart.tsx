@@ -11,7 +11,7 @@ export default function RevenueChart({ data }: { data: DayPoint[] }) {
 
   if (points.length === 0) {
     return (
-      <div className="h-48 flex items-center justify-center text-slate-500 text-sm">
+      <div className={`h-48 flex items-center justify-center text-arctic-light text-sm`}>
         No revenue in the last 7 days
       </div>
     );
@@ -26,15 +26,17 @@ export default function RevenueChart({ data }: { data: DayPoint[] }) {
         });
         return (
           <div key={d.date} className="flex-1 flex flex-col items-center gap-2 min-w-0">
-            <span className="text-[10px] text-slate-500 tabular-nums">
+            <span className="text-[10px] text-femme-champagne/80 tabular-nums font-semibold">
               ${Number(d.revenue).toFixed(0)}
             </span>
             <div
-              className="w-full rounded-t-lg bg-gradient-to-t from-indigo-600 to-indigo-400 transition-all"
+              className="w-full rounded-t-md bg-gradient-to-t from-femme-champagne/90 to-femme-champagne-light transition-all"
               style={{ height: `${pct}%` }}
               title={`${d.date}: $${Number(d.revenue).toFixed(2)}`}
             />
-            <span className="text-[10px] text-slate-400 truncate w-full text-center">{label}</span>
+            <span className="text-[10px] text-arctic-light truncate w-full text-center uppercase tracking-wider">
+              {label}
+            </span>
           </div>
         );
       })}

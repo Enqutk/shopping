@@ -34,7 +34,13 @@ export const products = pgTable('products', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
-export const orderStatusEnum = pgEnum('order_status', ['PENDING', 'PAID', 'SHIPPED', 'CANCELLED']);
+export const orderStatusEnum = pgEnum('order_status', [
+  'PENDING',
+  'AWAITING_CONFIRMATION',
+  'PAID',
+  'SHIPPED',
+  'CANCELLED',
+]);
 
 export const orders = pgTable('orders', {
   id: serial('id').primaryKey(),
@@ -56,6 +62,8 @@ export const orderItems = pgTable('order_items', {
     .notNull(),
   quantity: integer('quantity').notNull(),
   price: numeric('price', { precision: 10, scale: 2 }).notNull(),
+  color: varchar('color', { length: 64 }),
+  size: varchar('size', { length: 32 }),
 });
 
 export const orderStatusEvents = pgTable('order_status_events', {

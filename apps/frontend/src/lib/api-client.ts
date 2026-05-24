@@ -13,8 +13,34 @@ export function apiBaseUrl(): string {
   return env || 'http://localhost:3000/api';
 }
 
-export async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
+async function tryRefreshSession(): Promise<boolean> {
+  const base = apiBaseUrl();
+  try {
+    const res = await fetch(`${base}/auth/refresh`, {
+      method: 'POST',
+      credentials: 'include',
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+export async function apiFetch(
+  path: string,
+  init?: RequestInit & { _authRetry?: boolean },
+): Promise<Response> {
   const base = apiBaseUrl();
   const url = path.startsWith('http') ? path : `${base}${path.startsWith('/') ? path : `/${path}`}`;
-  return fetch(url, init);
+  const { _authRetry, ...fetchInit } = init ?? {};
+  const opts: RequestInit = { credentials: 'include', ...fetchInit };
+
+  let res = await fetch(url, opts);
+  if (res.status === 401 && !_authRetry) {
+    const refreshed = await tryRefreshSession();
+    if (refreshed) {
+      res = await apiFetch(path, { ...init, _authRetry: true });
+    }
+  }
+  return res;
 }

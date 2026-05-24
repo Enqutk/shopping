@@ -23,11 +23,16 @@ type AdminActivityPayload = {
   at?: string;
 };
 
+export type AdminActivityItem = AdminActivityPayload & { id: string };
+
 interface RealtimeState {
   connected: boolean;
   orderStatusById: Record<number, string>;
+  adminActivities: AdminActivityItem[];
   connect: () => void;
   disconnect: () => void;
+  clearAdminActivities: () => void;
+  hydrateAdminActivities: (items: AdminActivityItem[]) => void;
 }
 
 function pushToast(
@@ -43,12 +48,23 @@ function pushToast(
 function notifyAdminActivity(body: AdminActivityPayload) {
   const user = useAuthStore.getState().user;
   if (user?.role !== 'ADMIN' || !body.message) return;
+
+  const item: AdminActivityItem = {
+    ...body,
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+    at: body.at ?? new Date().toISOString(),
+  };
+  useRealtimeStore.setState((s) => ({
+    adminActivities: [item, ...s.adminActivities].slice(0, 30),
+  }));
+
   pushToast(body.message, 'info', body.href);
 }
 
 export const useRealtimeStore = create<RealtimeState>((set) => ({
   connected: false,
   orderStatusById: {},
+  adminActivities: [],
 
   connect: () => {
     if (typeof window === 'undefined') return;
@@ -104,4 +120,14 @@ export const useRealtimeStore = create<RealtimeState>((set) => ({
     socket = null;
     set({ connected: false });
   },
+
+  clearAdminActivities: () => set({ adminActivities: [] }),
+
+  hydrateAdminActivities: (items) =>
+    set((s) => {
+      const seen = new Set(s.adminActivities.map((a) => a.id));
+      const merged = [...items.filter((i) => !seen.has(i.id)), ...s.adminActivities];
+      merged.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
+      return { adminActivities: merged.slice(0, 50) };
+    }),
 }));

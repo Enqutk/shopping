@@ -2,7 +2,7 @@
 
 import { useAuthStore } from '../store/auth.store';
 import { syncCartToUser } from '../store/cart.store';
-import axios from 'axios';
+import { api } from '../lib/api-axios';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -12,10 +12,7 @@ export default function UserDropdown() {
 
   const handleLogout = async () => {
     try {
-      await axios.delete(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api'}/auth/logout`,
-        { withCredentials: true }
-      );
+      await api.delete('/auth/logout');
       logout();
       syncCartToUser(null);
       router.push('/login');

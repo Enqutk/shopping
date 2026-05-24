@@ -2,25 +2,30 @@ interface StatCardProps {
   label: string;
   value: string | number;
   hint?: string;
-  accent?: 'indigo' | 'emerald' | 'amber' | 'rose' | 'cyan';
+  accent?: 'champagne' | 'emerald' | 'amber' | 'rose' | 'steel';
 }
 
 const accents = {
-  indigo: 'from-indigo-500/20 to-indigo-600/5 border-indigo-500/30 text-indigo-300',
-  emerald: 'from-emerald-500/20 to-emerald-600/5 border-emerald-500/30 text-emerald-300',
-  amber: 'from-amber-500/20 to-amber-600/5 border-amber-500/30 text-amber-300',
-  rose: 'from-rose-500/20 to-rose-600/5 border-rose-500/30 text-rose-300',
-  cyan: 'from-cyan-500/20 to-cyan-600/5 border-cyan-500/30 text-cyan-300',
+  champagne:
+    'from-femme-champagne/15 to-femme-champagne/5 border-femme-champagne/30',
+  emerald: 'from-emerald-500/15 to-emerald-600/5 border-emerald-500/30',
+  amber: 'from-amber-500/15 to-amber-600/5 border-amber-500/30',
+  rose: 'from-rose-500/15 to-rose-600/5 border-rose-500/30',
+  steel: 'from-arctic-mist/20 to-transparent border-white/15',
 };
 
-export default function StatCard({ label, value, hint, accent = 'indigo' }: StatCardProps) {
+export default function StatCard({ label, value, hint, accent = 'champagne' }: StatCardProps) {
   return (
     <div
-      className={`rounded-2xl border bg-gradient-to-br p-5 ${accents[accent]}`}
+      className={`arctic-card rounded-arctic border bg-gradient-to-br p-5 ${accents[accent]}`}
     >
-      <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">{label}</p>
-      <p className="text-3xl font-extrabold text-white mt-2 tabular-nums">{value}</p>
-      {hint && <p className="text-xs text-slate-500 mt-2">{hint}</p>}
+      <p className={`text-[10px] font-bold uppercase tracking-[0.2em] text-femme-champagne`}>
+        {label}
+      </p>
+      <p className="text-3xl font-display font-semibold text-arctic-deep mt-2 tabular-nums tracking-wide">
+        {value}
+      </p>
+      {hint && <p className={`text-xs text-arctic-light mt-2 normal-case tracking-normal`}>{hint}</p>}
     </div>
   );
 }

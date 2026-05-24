@@ -60,6 +60,16 @@ export default function StoreFooter() {
           </div>
           <div>
             <h3 className="text-[10px] font-bold uppercase tracking-[0.25em] text-femme-champagne mb-4">
+              Company
+            </h3>
+            <ul className="space-y-2 text-xs uppercase tracking-wider text-arctic-light mb-6">
+              <li>
+                <Link href="/about" className="hover:text-femme-champagne transition-colors">
+                  About us
+                </Link>
+              </li>
+            </ul>
+            <h3 className="text-[10px] font-bold uppercase tracking-[0.25em] text-femme-champagne mb-4">
               Connect
             </h3>
             <p className="text-xs text-arctic-light normal-case tracking-normal">

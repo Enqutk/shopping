@@ -26,6 +26,16 @@ interface ToastState {
   error: (message: string, href?: string) => void;
   info: (message: string, href?: string) => void;
   dismiss: (id: string) => void;
+  dismissAll: () => void;
+}
+
+const TOAST_AUTO_DISMISS_MS = 15000;
+
+function scheduleAutoDismiss(id: string) {
+  if (typeof window === 'undefined') return;
+  setTimeout(() => {
+    useToastStore.getState().dismiss(id);
+  }, TOAST_AUTO_DISMISS_MS);
 }
 
 function addToast(
@@ -35,6 +45,7 @@ function addToast(
   href?: string,
 ): ToastItem[] {
   const id = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+  scheduleAutoDismiss(id);
   return [{ id, message, variant, ts: Date.now(), href }, ...items].slice(0, 8);
 }
 
@@ -58,6 +69,8 @@ export const useToastStore = create<ToastState>((set) => ({
 
   dismiss: (id) =>
     set((s) => ({ items: s.items.filter((t) => t.id !== id) })),
+
+  dismissAll: () => set({ items: [] }),
 }));
 
 export function getErrorMessage(err: unknown, fallback = 'Something went wrong'): string {

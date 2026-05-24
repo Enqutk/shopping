@@ -19,7 +19,7 @@ export interface OrderTimelineStep {
   message?: string;
 }
 
-const FLOW: OrderStatus[] = ['PENDING', 'PAID', 'SHIPPED'];
+const FLOW: OrderStatus[] = ['PENDING', 'AWAITING_CONFIRMATION', 'PAID', 'SHIPPED'];
 
 function optionDescription(status: OrderStatus): string {
   return ORDER_STATUS_OPTIONS.find((o) => o.value === status)?.description ?? '';
@@ -131,7 +131,8 @@ function synthesizeEvents(
 
 export const STATUS_EVENT_MESSAGES: Record<OrderStatus, string> = {
   PENDING: 'Order placed',
-  PAID: 'Payment confirmed',
+  AWAITING_CONFIRMATION: 'Payment submitted — awaiting confirmation',
+  PAID: 'Payment confirmed — delivery in 7–15 days',
   SHIPPED: 'Order delivered',
   CANCELLED: 'Order cancelled',
 };

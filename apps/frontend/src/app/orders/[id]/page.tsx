@@ -7,8 +7,11 @@ import StoreHeader from '../../../components/StoreHeader';
 import StoreFooter from '../../../components/store/StoreFooter';
 import StoreScene from '../../../components/immersive/StoreScene';
 import OrderTimeline from '../../../components/orders/OrderTimeline';
+import OrderPaymentPanel from '../../../components/orders/OrderPaymentPanel';
+import OrderAwaitingConfirmationPanel from '../../../components/orders/OrderAwaitingConfirmationPanel';
+import OrderDeliveryEstimatePanel from '../../../components/orders/OrderDeliveryEstimatePanel';
 import type { OrderDetail, OrderStatus } from '@shopping/shared';
-import { buildOrderTimeline, getOrderStatusLabel } from '@shopping/shared';
+import { buildOrderTimeline, formatOrderLineVariant, getOrderStatusLabel } from '@shopping/shared';
 import { ORDER_STATUS_BADGE } from '../../../lib/order-status-ui';
 import { useRealtimeStore } from '../../../store/realtime.store';
 import { apiFetch } from '../../../lib/api-client';
@@ -26,10 +29,18 @@ export default function OrderDetailPage() {
 
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
+    setNotFound(false);
+    setOrder(null);
+
     const load = async () => {
       try {
         const res = await apiFetch(`/orders/${id}`);
         if (res.status === 404) {
+          if (!cancelled) setNotFound(true);
+          return;
+        }
+        if (res.status === 401) {
           if (!cancelled) setNotFound(true);
           return;
         }
@@ -72,7 +83,7 @@ export default function OrderDetailPage() {
             href="/orders"
             className="text-[10px] uppercase tracking-wider text-arctic-light hover:text-femme-champagne mb-6 inline-block"
           >
-            ← Orders
+            ← Track orders
           </Link>
 
           {loading ? (
@@ -112,7 +123,9 @@ export default function OrderDetailPage() {
 
                 <div className="arctic-card overflow-hidden">
                   <ul className="divide-y divide-white/10">
-                    {order.items.map((line) => (
+                    {order.items.map((line) => {
+                      const variant = formatOrderLineVariant(line);
+                      return (
                       <li key={line.id} className="flex gap-3 p-4">
                         <Link
                           href={`/products/${line.productId}`}
@@ -133,6 +146,9 @@ export default function OrderDetailPage() {
                           >
                             {line.productName || `Product #${line.productId}`}
                           </Link>
+                          {variant && (
+                            <p className="text-xs text-femme-champagne/90 mt-1">{variant}</p>
+                          )}
                           <p className="text-xs text-arctic-light mt-1">
                             {line.quantity} × ${Number(line.price).toFixed(2)}
                           </p>
@@ -141,9 +157,31 @@ export default function OrderDetailPage() {
                           ${(Number(line.price) * line.quantity).toFixed(2)}
                         </p>
                       </li>
-                    ))}
+                    );
+                    })}
                   </ul>
                 </div>
+
+                {(displayStatus ?? order.status) === 'PENDING' && (
+                  <OrderPaymentPanel
+                    orderId={order.id}
+                    totalPrice={order.totalPrice}
+                    onPaid={(updated) => {
+                      setOrder(updated);
+                    }}
+                  />
+                )}
+
+                {(displayStatus ?? order.status) === 'AWAITING_CONFIRMATION' && (
+                  <OrderAwaitingConfirmationPanel
+                    orderId={order.id}
+                    totalPrice={order.totalPrice}
+                  />
+                )}
+
+                {(displayStatus ?? order.status) === 'PAID' && (
+                  <OrderDeliveryEstimatePanel />
+                )}
               </div>
 
               <aside className="arctic-card p-5 lg:sticky lg:top-24">

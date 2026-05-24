@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
+import { api } from '../../lib/api-axios';
 import { useAuthStore } from '../../store/auth.store';
 import { syncCartToUser } from '../../store/cart.store';
 import { apiBaseUrl } from '../../lib/api-client';
@@ -79,9 +80,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
         ? { name, email, password }
         : { email, password };
 
-      const { data } = await axios.post(`${backendUrl}${path}`, body, {
-        withCredentials: true,
-      });
+      const { data } = await api.post(path, body);
 
       setUser(data.user);
       syncCartToUser(data.user.id);

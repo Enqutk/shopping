@@ -3,6 +3,7 @@
 import { useAuthStore } from '../store/auth.store';
 import { syncCartToUser } from '../store/cart.store';
 import { api } from '../lib/api-axios';
+import { getRefreshToken } from '../lib/session-auth';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -12,7 +13,9 @@ export default function UserDropdown() {
 
   const handleLogout = async () => {
     try {
-      await api.delete('/auth/logout');
+      await api.delete('/auth/logout', {
+        data: { refreshToken: getRefreshToken() ?? undefined },
+      });
       logout();
       syncCartToUser(null);
       router.push('/login');

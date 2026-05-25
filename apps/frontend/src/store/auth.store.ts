@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { UserProfile } from '@shopping/shared';
+import { clearSessionTokens } from '../lib/session-auth';
 
 interface AuthState {
   user: UserProfile | null;
@@ -14,5 +15,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   loading: true,
   setUser: (user) => set({ user, loading: false }),
   setLoading: (loading) => set({ loading }),
-  logout: () => set({ user: null, loading: false }),
+  logout: () => {
+    clearSessionTokens();
+    set({ user: null, loading: false });
+  },
 }));

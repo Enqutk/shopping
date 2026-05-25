@@ -39,26 +39,30 @@ export class AuthController {
     private realtime: RealtimeGateway,
   ) {}
 
-  private async attachSession(res: Response, user: AuthUser) {
-    const { accessToken, refreshToken } = await this.authService.issueTokens(
-      user.id,
-      user.email,
-      user.role,
-    );
+  private async issueSession(user: AuthUser) {
+    return this.authService.issueTokens(user.id, user.email, user.role);
+  }
 
-    res.cookie('access_token', accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 15 * 60 * 1000,
-    });
+  private clearLegacyCookies(res: Response) {
+    res.clearCookie('access_token');
+    res.clearCookie('refresh_token');
+  }
 
-    res.cookie('refresh_token', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+  private sessionResponse(
+    user: AuthUser & { name: string; avatar?: string | null },
+    tokens: { accessToken: string; refreshToken: string },
+  ) {
+    return {
+      user: this.toProfile({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar ?? null,
+        role: user.role,
+      }),
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+    };
   }
 
   private toProfile(row: {
@@ -79,22 +83,24 @@ export class AuthController {
 
   @Post('register')
   async register(@Body() dto: RegisterDto, @Res({ passthrough: true }) res: Response) {
+    this.clearLegacyCookies(res);
     const user = await this.usersService.registerWithPassword(dto);
-    await this.attachSession(res, user);
+    const tokens = await this.issueSession(user);
     this.realtime.emitAdminActivity({
       type: 'account.registered',
       message: `New account · ${user.name} (${user.email})`,
       href: '/admin',
       meta: { userId: user.id, userName: user.name, userEmail: user.email },
     });
-    return { user: this.toProfile(user) };
+    return this.sessionResponse(user, tokens);
   }
 
   @Post('login')
   async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
+    this.clearLegacyCookies(res);
     const user = await this.usersService.validateLocalLogin(dto.email, dto.password);
-    await this.attachSession(res, user);
-    return { user: this.toProfile(user) };
+    const tokens = await this.issueSession(user);
+    return this.sessionResponse(user, tokens);
   }
 
   @Get('google')
@@ -110,7 +116,7 @@ export class AuthController {
     @Res() res: Response,
   ) {
     this.logger.log(`GET ${req.url ?? '/auth/google/callback'}: user ${req.user.email}`);
-    await this.attachSession(res, req.user);
+    const tokens = await this.issueSession(req.user);
     if (req.user.isNewAccount) {
       this.realtime.emitAdminActivity({
         type: 'account.google',
@@ -123,24 +129,25 @@ export class AuthController {
         },
       });
     }
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL');
-    return res.redirect(`${frontendUrl}/login/success`);
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL')?.replace(/\/$/, '');
+    const hash = new URLSearchParams({
+      access_token: tokens.accessToken,
+      refresh_token: tokens.refreshToken,
+    }).toString();
+    return res.redirect(`${frontendUrl}/login/success#${hash}`);
   }
 
   @Post('refresh')
-  async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    const raw = req.cookies['refresh_token'];
+  async refresh(
+    @Req() req: Request,
+    @Body() body: { refreshToken?: string },
+  ) {
+    const raw = body?.refreshToken || req.cookies['refresh_token'];
     if (!raw) {
       throw new UnauthorizedException();
     }
     const accessToken = await this.authService.refreshAccessToken(raw);
-    res.cookie('access_token', accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 15 * 60 * 1000,
-    });
-    return { ok: true };
+    return { ok: true, accessToken };
   }
 
   @Get('me')
@@ -154,8 +161,12 @@ export class AuthController {
   }
 
   @Delete('logout')
-  async logout(@Req() req: Request, @Res() res: Response) {
-    const refreshToken = req.cookies['refresh_token'];
+  async logout(
+    @Req() req: Request,
+    @Body() body: { refreshToken?: string },
+    @Res() res: Response,
+  ) {
+    const refreshToken = body?.refreshToken || req.cookies['refresh_token'];
     if (refreshToken) {
       await this.authService.revokeRefreshToken(refreshToken);
     }

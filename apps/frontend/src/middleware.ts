@@ -19,17 +19,11 @@ function isAuthPage(pathname: string): boolean {
 }
 
 export function middleware(request: NextRequest) {
-  const token = request.cookies.get('access_token')?.value;
   const { pathname } = request.nextUrl;
-  const onAuthPage = isAuthPage(pathname);
-
-  if (!token && !onAuthPage && !isPublicPath(pathname)) {
-    const login = new URL('/login', request.url);
-    login.searchParams.set('from', pathname);
-    return NextResponse.redirect(login);
-  }
-
-  if (token && onAuthPage) {
+  // Auth is per-tab (sessionStorage + Bearer). Client layouts guard protected routes.
+  // Legacy cookie from Google OAuth: skip login page if already signed in that tab's flow.
+  const legacyCookie = request.cookies.get('access_token')?.value;
+  if (legacyCookie && isAuthPage(pathname)) {
     return NextResponse.redirect(new URL('/', request.url));
   }
 

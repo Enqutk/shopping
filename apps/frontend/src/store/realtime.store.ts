@@ -3,6 +3,7 @@
 import { io, type Socket } from 'socket.io-client';
 import { create } from 'zustand';
 import { orderStatusNotificationMessage } from '../lib/order-notifications';
+import { getAccessToken } from '../lib/session-auth';
 import { useAuthStore } from './auth.store';
 import { useToastStore } from './toast.store';
 
@@ -71,8 +72,9 @@ export const useRealtimeStore = create<RealtimeState>((set) => ({
     if (socket?.connected) return;
 
     const url = realtimeBaseUrl();
+    const token = getAccessToken();
     socket = io(url, {
-      withCredentials: true,
+      auth: token ? { token } : undefined,
       transports: ['websocket', 'polling'],
     });
 

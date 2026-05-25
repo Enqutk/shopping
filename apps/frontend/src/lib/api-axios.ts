@@ -1,15 +1,18 @@
 import axios, { type InternalAxiosRequestConfig } from 'axios';
 import { apiBaseUrl, refreshSession } from './api-client';
+import { authHeaders } from './session-auth';
 
-/** Axios client: resolves base URL per request so SSR never pins :3000 in the browser. */
-export const api = axios.create({
-  withCredentials: true,
-});
+/** Axios client: resolves base URL per request; auth via Bearer token in sessionStorage (per tab). */
+export const api = axios.create();
 
 type RetryConfig = InternalAxiosRequestConfig & { _authRetry?: boolean };
 
 api.interceptors.request.use((config) => {
   config.baseURL = apiBaseUrl();
+  const headers = authHeaders();
+  if (headers.Authorization) {
+    config.headers.set('Authorization', headers.Authorization);
+  }
   return config;
 });
 

@@ -1,3 +1,11 @@
+import {
+  authHeaders,
+  clearSessionTokens,
+  getRefreshToken,
+  setSessionTokens,
+  withAuthHeaders,
+} from './session-auth';
+
 /**
  * In the browser, use same-origin `/api` so Next.js can rewrite to Nest on :3000
  * (avoids CORS and connection issues). Server components use the full URL.
@@ -13,15 +21,23 @@ export function apiBaseUrl(): string {
   return env || 'http://localhost:3000/api';
 }
 
-/** Refresh the access_token cookie using refresh_token. */
+/** Refresh the access token for this tab only (sessionStorage). */
 export async function refreshSession(): Promise<boolean> {
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) return false;
+
   const base = apiBaseUrl();
   try {
     const res = await fetch(`${base}/auth/refresh`, {
       method: 'POST',
-      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken }),
     });
-    return res.ok;
+    if (!res.ok) return false;
+    const data = (await res.json()) as { accessToken?: string };
+    if (!data.accessToken) return false;
+    setSessionTokens(data.accessToken, refreshToken);
+    return true;
   } catch {
     return false;
   }
@@ -34,7 +50,7 @@ export async function apiFetch(
   const base = apiBaseUrl();
   const url = path.startsWith('http') ? path : `${base}${path.startsWith('/') ? path : `/${path}`}`;
   const { _authRetry, ...fetchInit } = init ?? {};
-  const opts: RequestInit = { credentials: 'include', ...fetchInit };
+  const opts = withAuthHeaders(fetchInit);
 
   let res = await fetch(url, opts);
   if (res.status === 401 && !_authRetry) {
@@ -45,3 +61,5 @@ export async function apiFetch(
   }
   return res;
 }
+
+export { authHeaders, clearSessionTokens, getRefreshToken, setSessionTokens };

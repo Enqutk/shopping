@@ -3,7 +3,8 @@
 import { useEffect } from 'react';
 import { useAuthStore } from '../store/auth.store';
 import { syncCartToUser } from '../store/cart.store';
-import { apiFetch } from '../lib/api-client';
+import { apiFetch, ensureValidSession } from '../lib/api-client';
+import { clearSessionTokens, consumeOAuthTokensFromUrl } from '../lib/session-auth';
 
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
   const { setUser, setLoading } = useAuthStore();
@@ -13,7 +14,17 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
 
     async function fetchMe() {
       try {
-        const res = await apiFetch('/auth/me', { credentials: 'include' });
+        consumeOAuthTokensFromUrl();
+        const hasSession = await ensureValidSession();
+        if (!hasSession) {
+          if (!cancelled) {
+            setUser(null);
+            syncCartToUser(null);
+          }
+          return;
+        }
+
+        const res = await apiFetch('/auth/me');
         if (cancelled) return;
         if (res.ok) {
           const user = await res.json();
@@ -22,11 +33,13 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
             syncCartToUser(user.id);
           }
         } else if (!cancelled) {
+          clearSessionTokens();
           setUser(null);
           syncCartToUser(null);
         }
       } catch {
         if (!cancelled) {
+          clearSessionTokens();
           setUser(null);
           syncCartToUser(null);
         }

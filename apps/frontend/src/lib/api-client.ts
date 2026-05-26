@@ -1,6 +1,7 @@
 import {
   authHeaders,
   clearSessionTokens,
+  getAccessToken,
   getRefreshToken,
   setSessionTokens,
   withAuthHeaders,
@@ -21,6 +22,13 @@ export function apiBaseUrl(): string {
   return env || 'http://localhost:3000/api';
 }
 
+/** Restore access token from refresh token when this tab has no access token yet. */
+export async function ensureValidSession(): Promise<boolean> {
+  if (getAccessToken()) return true;
+  if (!getRefreshToken()) return false;
+  return refreshSession();
+}
+
 /** Refresh the access token for this tab only (sessionStorage). */
 export async function refreshSession(): Promise<boolean> {
   const refreshToken = getRefreshToken();
@@ -35,10 +43,14 @@ export async function refreshSession(): Promise<boolean> {
     });
     if (!res.ok) return false;
     const data = (await res.json()) as { accessToken?: string };
-    if (!data.accessToken) return false;
+    if (!data.accessToken) {
+      clearSessionTokens();
+      return false;
+    }
     setSessionTokens(data.accessToken, refreshToken);
     return true;
   } catch {
+    clearSessionTokens();
     return false;
   }
 }

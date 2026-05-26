@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const PUBLIC_PATHS = new Set(['/', '/login', '/register', '/about', '/cart']);
+const PUBLIC_PATHS = new Set(['/', '/login', '/register', '/about', '/cart', '/login/success']);
 const PUBLIC_PREFIXES = ['/products'];
 const AUTH_PREFIXES = ['/login', '/register'];
 

@@ -40,12 +40,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
 
   useEffect(() => {
-    if (!loading) {
-      if (!user || user.role !== 'ADMIN') {
-        router.push('/');
-      }
+    if (!loading && (!user || user.role !== 'ADMIN')) {
+      const from = encodeURIComponent(pathname);
+      router.push(`/login?from=${from}`);
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, pathname]);
 
   if (loading) {
     return (

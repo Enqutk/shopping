@@ -129,7 +129,9 @@ export class AuthController {
         },
       });
     }
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL')?.replace(/\/$/, '');
+    const frontendUrl =
+      this.configService.get<string>('FRONTEND_URL')?.replace(/\/$/, '') ||
+      'http://localhost:4200';
     const hash = new URLSearchParams({
       access_token: tokens.accessToken,
       refresh_token: tokens.refreshToken,

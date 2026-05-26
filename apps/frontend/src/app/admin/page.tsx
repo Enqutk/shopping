@@ -17,6 +17,8 @@ import { adminStatusBadge, adminUi } from '../../lib/admin-ui';
 export default function AdminDashboardPage() {
   const router = useRouter();
   const logout = useAuthStore((s) => s.logout);
+  const authLoading = useAuthStore((s) => s.loading);
+  const user = useAuthStore((s) => s.user);
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [accessError, setAccessError] = useState<string | null>(null);
@@ -45,8 +47,9 @@ export default function AdminDashboardPage() {
   };
 
   useEffect(() => {
+    if (authLoading || user?.role !== 'ADMIN') return;
     loadStats();
-  }, []);
+  }, [authLoading, user?.role]);
 
   useEffect(() => {
     if (adminActivities.length === 0) return;

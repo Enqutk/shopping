@@ -1,6 +1,6 @@
 import axios, { type InternalAxiosRequestConfig } from 'axios';
 import { apiBaseUrl, refreshSession } from './api-client';
-import { authHeaders } from './session-auth';
+import { clearSessionTokens, getAccessToken } from './session-auth';
 
 /** Axios client: resolves base URL per request; auth via Bearer token in sessionStorage (per tab). */
 export const api = axios.create();
@@ -9,9 +9,9 @@ type RetryConfig = InternalAxiosRequestConfig & { _authRetry?: boolean };
 
 api.interceptors.request.use((config) => {
   config.baseURL = apiBaseUrl();
-  const headers = authHeaders();
-  if (headers.Authorization) {
-    config.headers.set('Authorization', headers.Authorization);
+  const token = getAccessToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
@@ -30,6 +30,7 @@ api.interceptors.response.use(
       if (refreshed) {
         return api.request(config);
       }
+      clearSessionTokens();
     }
     return Promise.reject(error);
   },

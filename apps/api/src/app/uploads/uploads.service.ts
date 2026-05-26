@@ -35,7 +35,7 @@ export class UploadsService {
 
     mkdirSync(this.productsDir, { recursive: true });
     const ext =
-      EXT_BY_MIME[file.mimetype] ??
+      EXT_BY_MIME[file.mimetype] ||
       extname(file.originalname).toLowerCase() ||
       '.jpg';
     const filename = `${randomUUID()}${ext}`;

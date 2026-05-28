@@ -1,7 +1,7 @@
 import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import { DATABASE_CONNECTION, products } from '@shopping/database';
 import { categoryFilterValues } from '@shopping/shared';
-import { and, desc, eq, gte, ilike, inArray, lte, or, sql } from 'drizzle-orm';
+import { and, eq, gte, ilike, inArray, lte, or, sql } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { CreateProductDto } from './create-product.dto';
 import { UpdateProductDto } from './update-product.dto';
@@ -78,7 +78,10 @@ export class ProductsService {
     }
 
     const where = conditions.length > 0 ? and(...conditions) : undefined;
-    const newestFirst = [desc(products.createdAt), desc(products.id)];
+    const newestFirst = [
+      sql`${products.createdAt} desc`,
+      sql`${products.id} desc`,
+    ];
 
     const [data, countResult] = await Promise.all([
       where

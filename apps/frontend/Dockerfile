@@ -12,6 +12,7 @@ COPY libs libs
 COPY tsconfig.json ./
 
 RUN npm ci
+RUN npx nx sync
 RUN npx nx run frontend:build
 
 FROM node:20-alpine AS runner

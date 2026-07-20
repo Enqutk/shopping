@@ -109,7 +109,7 @@ export default function AdminActivityFeed() {
   }, [hydrate, authLoading, user?.role]);
 
   const cutoff = Date.now() - 24 * 60 * 60 * 1000;
-  const recent = activities.filter((a) => new Date(a.at).getTime() >= cutoff);
+  const recent = activities.filter((a) => a.at && new Date(a.at).getTime() >= cutoff);
 
   return (
     <div className={adminUi.card}>

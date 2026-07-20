@@ -7,6 +7,7 @@ COPY nx.json tsconfig.base.json ./
 COPY apps/api apps/api
 COPY libs libs
 COPY drizzle drizzle
+COPY tsconfig.json ./
 
 RUN npm ci
 RUN npx nx run api:build --configuration=production

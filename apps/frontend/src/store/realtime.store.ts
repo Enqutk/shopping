@@ -129,7 +129,11 @@ export const useRealtimeStore = create<RealtimeState>((set) => ({
     set((s) => {
       const seen = new Set(s.adminActivities.map((a) => a.id));
       const merged = [...items.filter((i) => !seen.has(i.id)), ...s.adminActivities];
-      merged.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
+      merged.sort((a, b) => {
+        const bTime = b.at ? new Date(b.at).getTime() : 0;
+        const aTime = a.at ? new Date(a.at).getTime() : 0;
+        return bTime - aTime;
+      });
       return { adminActivities: merged.slice(0, 50) };
     }),
 }));

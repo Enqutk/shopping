@@ -1,24 +1,12 @@
-# Production stack for VPS (IP deploy for now; swap URLs when you add a domain).
+# Production stack for VPS with Dokploy-managed Postgres.
 # Usage on the server:
 #   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+#
+# Postgres runs as a separate Dokploy Database service (not in this compose file).
+# Set DATABASE_URL in Dokploy Environment, e.g.:
+#   postgresql://postgres:PASSWORD@luxe-shopping:5432/shopping
 
 services:
-  postgres:
-    image: postgres:16-alpine
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB:-shopping}
-    # Only reachable inside the Docker network — not exposed to the internet.
-    volumes:
-      - shopping_pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB']
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
   api:
     build:
       context: .
@@ -27,7 +15,7 @@ services:
     ports:
       - '3001:3000'
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-shopping}
+      DATABASE_URL: ${DATABASE_URL}
       JWT_SECRET: ${JWT_SECRET}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
@@ -35,16 +23,15 @@ services:
       FRONTEND_URL: ${FRONTEND_URL}
       PORT: 3000
       NODE_ENV: production
-    depends_on:
-      postgres:
-        condition: service_healthy
+    networks:
+      - dokploy-network
+      - default
 
   frontend:
     build:
       context: .
       dockerfile: apps/frontend/Dockerfile
       args:
-        # Baked into the Next.js client bundle at build time
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
         NEXT_PUBLIC_GOOGLE_AUTH_ENABLED: ${NEXT_PUBLIC_GOOGLE_AUTH_ENABLED:-false}
     restart: unless-stopped
@@ -56,6 +43,10 @@ services:
       NODE_ENV: production
     depends_on:
       - api
+    networks:
+      - dokploy-network
+      - default
 
-volumes:
-  shopping_pgdata:
+networks:
+  dokploy-network:
+    external: true

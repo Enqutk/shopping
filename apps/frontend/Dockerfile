@@ -9,6 +9,7 @@ COPY package.json package-lock.json ./
 COPY nx.json tsconfig.base.json ./
 COPY apps/frontend apps/frontend
 COPY libs libs
+COPY tsconfig.json ./
 
 RUN npm ci
 RUN npx nx run frontend:build

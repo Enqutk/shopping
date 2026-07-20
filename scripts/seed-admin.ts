@@ -40,7 +40,7 @@ async function main() {
     console.log(`Created admin user: ${email}`);
   }
 
-  console.log(`Sign in at http://localhost:4200/login`);
+  console.log(`Sign in at ${process.env.FRONTEND_URL || 'http://localhost:4200'}/login`);
   console.log(`  Email: ${ADMIN_EMAIL}`);
   console.log(`  Password: ${ADMIN_PASSWORD}`);
 

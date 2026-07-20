@@ -10,6 +10,7 @@ COPY drizzle drizzle
 COPY tsconfig.json ./
 
 RUN npm ci
+RUN npx nx sync
 RUN npx nx run api:build --configuration=production
 RUN npx nx run api:prune
 

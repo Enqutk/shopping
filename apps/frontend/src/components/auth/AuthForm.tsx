@@ -7,7 +7,6 @@ import axios from 'axios';
 import { api } from '../../lib/api-axios';
 import { useAuthStore } from '../../store/auth.store';
 import { syncCartToUser } from '../../store/cart.store';
-import { apiBaseUrl } from '../../lib/api-client';
 import { setSessionTokens } from '../../lib/session-auth';
 
 type AuthMode = 'login' | 'register';
@@ -48,7 +47,6 @@ export default function AuthForm({ mode }: AuthFormProps) {
   const strengthScore = Object.values(checks).filter(Boolean).length;
   const passwordStrong = strengthScore === 5;
 
-  const backendUrl = apiBaseUrl();
   const googleAuthEnabled =
     process.env.NEXT_PUBLIC_GOOGLE_AUTH_ENABLED === 'true';
   /** OAuth must hit the Nest API on :3000, not the Next proxy (avoids loop if dev runs on wrong port). */

@@ -22,7 +22,7 @@ import { DatabaseModule } from '@shopping/database';
         GOOGLE_CLIENT_ID: Joi.string().allow('').optional(),
         GOOGLE_CLIENT_SECRET: Joi.string().allow('').optional(),
         /** Must match an "Authorized redirect URI" in Google Cloud (defaults to local API). */
-        GOOGLE_CALLBACK_URL: Joi.string().optional(),
+        GOOGLE_CALLBACK_URL: Joi.string().allow('').optional(),
         FRONTEND_URL: Joi.string().required(),
       }),
     }),

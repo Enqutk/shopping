@@ -2,7 +2,11 @@
   "name": "@shopping/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "seed:products": "npx tsx scripts/seed-products.ts",
+    "seed:admin": "npx tsx scripts/seed-admin.ts",
+    "seed": "npx tsx scripts/seed-products.ts && npx tsx scripts/seed-admin.ts"
+  },
   "private": true,
   "dependencies": {
     "@nestjs/common": "^11.0.0",
